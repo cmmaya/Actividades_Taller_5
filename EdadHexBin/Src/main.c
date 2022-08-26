@@ -1,10 +1,11 @@
-#include <stdint.h>
+#include<stdint.h>
 #include<stdio.h>
 #include<stdlib.h>
 //////PUNTO 1/////////
 
 
 main(void) {
+
    unsigned short dias_transcurridos = 0;
    unsigned int   horas_transcurridos = 0;
    unsigned int   segundos_transcurridos = 0;
@@ -13,15 +14,16 @@ main(void) {
    unsigned char days   =  10;
    unsigned char horas  =  5;
 
+
+
+
+/////PUNTO 2////////
+
     /* El numero de dias entre 2001 y 2021 = (years-1-2000)*365
      * El numero de dias en el 2000 = (12-months+1)*31-(days)
      * El numero de dias transcurridos hasta el 7 de agosto =(7)*31+ (31-17)
      * No se cuenta el ultimo dia, pues esta incompleto*/
-
-
-/////PUNTO 2////////
    dias_transcurridos = ((years-1-2000)*365+(12-months)*31+(30-days) + (7)*31+ (31-17))-1;
-
 
 /////PUNTO 3////////
    /*para las horas multiplico los dias por 24 y sumo las horas del dia que falta*/
@@ -30,13 +32,6 @@ main(void) {
 /////PUNTO 4////////
    /*para los segundos multiplico las horas por 3600*/
    segundos_transcurridos = dias_transcurridos*3600 + horas*3600;
-
-
-/*imprimo los valores*/
-   printf("%d",dias_transcurridos);
-   printf("\n%d",horas_transcurridos);
-   printf("\n%d",segundos_transcurridos);
-   printf("\n","");
 
  /////PUNTO 5////////
    int i,n,h,k;
@@ -51,13 +46,12 @@ main(void) {
    a[i]=n%2;
    n=n/2;
    }
-   /*anoto el numero resultante dias_binario= 1111101001000*/
-   unsigned long dias_binario= 1111101001000;
+   /*anoto el numero resultante: dias_binario= 1111101001000*/
 
 
 
    /*hacemos lo mismo para las horas transcurridas, usando la matriz b[]*/
-      printf("\n","");
+
    h = horas_transcurridos;
 
    for(i=0;h>0;i++)
@@ -65,12 +59,11 @@ main(void) {
    b[i]=h%2;
    h=h/2;
    }
-   /*anoto el numero resultante tambien
+   /*anoto el numero resultante tambien:
    horas_binario=101110111011000101*/
 
 
       /*Para obtener el hexadecimal guardamos en la matriz c[] los modulos del numero divido por 16 hasta que ya no se pueda seguir dividiendo*/
-   printf("\n","");
    k = segundos_transcurridos;
    for(i=0;k>0;i++)
    {
@@ -87,13 +80,20 @@ main(void) {
    dias_transcurridos=dias_transcurridos<<1;
    dias_transcurridos=dias_transcurridos<<1;
    dias_transcurridos=dias_transcurridos<<1;
-   /*explicacion: Al aplicar la operacion es como multiplicar por 2 el valor inicial, al seguir ejecutando la operacion el valor se multiplica por 2^n. 4 veces equivale a multiplicar por 16*/
+   /*explicacion: Al aplicar la operacion es como multiplicar por 2 el valor inicial, al seguir ejecutando la operacion el valor se multiplica por 2^n. 4 veces equivale a multiplicar por 16
+   *esta operacion funciona porque al desplazar los numeros una posicion hacia la izquierda y poner un 0 al principio, estamos elevando todos los numeros a una potencia de 2 mas, que es lo mismo que multiplicar por 2, ver el ejemplo:
+   011 = 1*2^0+1*2^1+0*2^2
+   <<011 =  110 = 0*2^0+1*2^1+1*2^2  =  2*(1*2^0+1*2^1+0*2^2)
+   */
 /////PUNTO 7////////
    horas_transcurridos=horas_transcurridos>>1;
    horas_transcurridos=horas_transcurridos>>1;
    horas_transcurridos=horas_transcurridos>>1;
    horas_transcurridos=horas_transcurridos>>1;
-   /*explicacion: Al aplicar la operacion es como dividir por 2 el valor inicial, al seguir ejecutando la operacion el valor se divide por 2^n. 4 veces equivale a dividir por 16*/
+   /*explicacion: Al aplicar la operacion es como dividir por 2 el valor inicial, al seguir ejecutando la operacion el valor se divide por 2^n. 4 veces equivale a dividir por 16
+   *esta operacion funciona porque al desplazar los numeros una posicion hacia la izquierda y poner un 0 al principio, estamos elevando todos los numeros a una potencia de 2 menos, que es lo mismo que dividir por 2, ver el ejemplo:
+   110 = 1*2^0+1*2^1+0*2^2
+   <<110 =  011 = 0*2^2+1*2^1+1*2^0  =  (1/2)*(1*2^2+1*2^1+0*2^0)   */
 
 /////PUNTO 8////////
    /*retomo el valor original de la variable dias_transcurridos*/
@@ -105,12 +105,45 @@ main(void) {
    /*sumamos el valor original*/
    dias_transcurridos= dias_transcurridos+8008;
 
-  /*EL RESULTADO DA 0 PARA CUALQUIER VARIABLE*/
+  /*EL RESULTADO DA 0 PARA CUALQUIER VARIABLE,
+  pues al sumar el numero con su inverso da un numero con solo valores de 1 e.g 1010+ 0101 =1111.   Luego al sumarle 1, al estar completo el numero de bits(pues se le especifico en el formato), se reinicia el ciclo(se vuelven ceros) */
 
 
 /////PUNTO 9////////
 
-  /*El numero de la 4ta posicio
+  /*El numero de la 4ta posicion de 1B82AD0  es 8, al ser par, vamos a obtener los valores de la posicion 1 y 5 y anular las demas
+  *PRIMERO vamos a convertir nuestro numero HEX a binario: Recordemos que cada numero HEX se almacena con 4 bits, entonces quedaria
+    1   |B   |8   |2   |A   |D   |0   |
+    0001|1011|1000|0010|1010|1101|0000|
+    Para anular la Primera(D) y la quinta (B) posicion utilizamos el operador AND de la siguiente forma:
 
-   printf("%d", dias_transcurridos);
+     1010&
+     1100
+    =1000
+    En nuestro numero aplicamos la misma logica:
+    0001|1011|1000|0010|1010|1101|0000|&
+    0001|0000|1000|0010|1010|0000|0000|
+
+    el numero que utilizamos de mascara es 0001000010000010101000000000 y corresponde a 1082A00
+
+    La manera mas facil de verlo, es que al utilizar la operacion AND, los bits 0 anulan los 1, por lo que, al cambiar la letra por 0, sirve como mascara para anular la posicion que queremos
+    Comprobemoslo.
+  */
+   int mask1;
+   mask1= 0x1082a00 &  0x1b82ad0 ;
+   /*el numero resultante es 17312256, que es 0x1082a00 en hex*/
+
+
+/////PUNTO 10////////
+   int mask2;
+   mask2=  0x040 & 0x1b82ad0 ;
+   /*El numero es distinto de 0, procedemos a borrar el numero de la posicion 6 usando la misma logica del punto anterior*/
+   int mask3;
+   mask3=  0x0b82ad0 &  0x1b82ad0;
+   /*El resultante es 0x0b82ad0*/
+
+//////PUNTO 11//////
+ horas_transcurridos = !horas_transcurridos;
+ horas_transcurridos = !horas_transcurridos;
+   /*Al aplicar la primera vez la operacion, el valor de la variable se vuelve 0, y si se aplica de nuevo se vuelve 1. Esto porque el ! es un operador NOT, que vuelve 0 las variables, al negar la variable 0, da como equivalente 1, porque negar el 0, da el resultado contrario, es decir, 1.*/
 }
