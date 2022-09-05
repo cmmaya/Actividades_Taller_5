@@ -2,7 +2,8 @@
 #include<stdio.h>
 #include<stdlib.h>
 //////PUNTO 1/////////
-
+//CAMILO MONSALVE M.//
+//FECHA DE NACIMIENTO 10 de SEP del 2000///
 
 main(void) {
 
