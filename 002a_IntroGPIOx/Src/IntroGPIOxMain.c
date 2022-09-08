@@ -44,6 +44,7 @@
 uint32_t i = 0;
 
 /* Función principal del programa. Es acá donde se ejecuta toto */
+// con asterisco es la posicion y sin asterisco es el valor de la variable
 int main(void){
 
 	//*********
@@ -51,7 +52,7 @@ int main(void){
 
 	GPIO_Handler_t handlerUserLedPin = {0};  //la estructura que le da las prop al pin
 
-	// Deseamos trabahar con el puerto GPIOA
+	// Deseamos trabajar con el puerto GPIOA
 	handlerUserLedPin.pGPIOx = GPIOA;
 	handlerUserLedPin.GPIO_PinConfig.GPIO_PinNumber			= PIN_5;
 	handlerUserLedPin.GPIO_PinConfig.GPIO_PinMode			= GPIO_MODE_OUT;       //entrada o salida
@@ -70,6 +71,7 @@ int main(void){
 	while(1){
 
 	}
+	return
 }
 
 
