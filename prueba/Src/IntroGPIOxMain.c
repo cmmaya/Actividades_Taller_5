@@ -1,3 +1,56 @@
+/////////////////PUNTO 1 ///////////////
+/*
+
+ * En el archivo "GPIOxDriver" Se modificó la funcion GPIO_ReadPin:
+
+ - La funcion se le introduce una variable tipo GPIO_Handler y es un puntero (por el asterisco)
+ - Internamente lo que hace es tomar las posiciones de memoria en IDR y desplazarlas hacia la derecha
+   tantas veces como el numero del PIN. con el comando 	pinValue = (pPinHandler->pGPIOx->IDR>>pPinHandler->GPIO_PinConfig.GPIO_PinNumber);
+   esta informacion la guarda en la variable "pinValue".
+
+
+    Por ejemplo, si quiero obtener el PIN 4(que esta encendido), la posicion de memoria se ve asi:
+   	 * 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0   --> posicion inicial
+	 * 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1   --> Posicion desplazada hacia la derecha 4 veces
+
+ - ahora, como yo solo quiero saber el valor de la variable, y no los valores de la memoria IDR en general, aplico una mascara
+   al ultimo resultado, con el objetivo de que me diga si el bit de la derecha esta prendido o apagado.
+   Esto lo logro con la operacion AND (&)
+
+   	pinValue = pinValue & 0b1;
+
+   	Aqui hay un ejemplo de como funciona la mascara AND:
+
+   	0 0 0 0 1 0 0 0 1 0 0 0 0 0 0 1
+   	0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1  &
+  = 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1   =  1
+
+
+   La mascara anula todos lo terminos menos el ultimo, que lo vuelve 1, si es 1 y lo vuelve 0 si es 0.
+
+
+   - Al final se retorna la variable pinValue modificada, que nos dara solo el valor del bit que requerimos
+
+
+   A continuacion se muestra el codigo completo:
+
+uint32_t GPIO_ReadPin(GPIO_Handler_t *pPinHandler){
+
+	uint32_t pinValue = 0;
+
+
+	pinValue = (pPinHandler->pGPIOx->IDR>>pPinHandler->GPIO_PinConfig.GPIO_PinNumber);
+
+
+	pinValue = pinValue & 0b1;
+
+
+
+	return pinValue;
+	}
+ */
+
+
 
 #include <stdint.h>
 
@@ -49,23 +102,25 @@ int main(void){
 	void GPIOxTooglePin(GPIO_Handler_t *handlerUserPin){
 
    /*
-    * En este apartado cambiamos el estado de output del PIN, dicha informacion se encuentra en el ODR,
-      para cambiar su estado, invocamos la propiedad del ODR de nuestro PIN (handlerUserPin->pGPIOx->ODR)
+    * En este apartado cambiamos el estado de output del PIN, dicha informacion se encuentra en el ODR.
+      Para cambiar su estado, invocamos la propiedad del ODR de nuestro PIN (handlerUserPin->pGPIOx->ODR)
 
-      dica direccion nos da el registr de memoria del ODR (el valor de los 16 bits), y para cambiar unicamente
-      el PIN que queremos utilzamos una operacion XOR, como se ve en el ejemplo
+      dica direccion nos da el registro de memoria del ODR (el valor de los 16 bits), y para cambiar unicamente
+      el PIN que queremos, utilzamos una operacion XOR, como se ve en el ejemplo
 
-      0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0        --> el pin 5 esta activado
+
+
+      0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0        --> Memoria en ODR, el pin 5 esta activado
       0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 XOR    --> aplicamos la mascara XOR en la posicion que deseamos
     = 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 
      nota: si por el contrario el pin estuviera apagado la operaicion XOR lo prende = 0^1 = 1
 
 
-    *Lo siguiente es modificar la mascara para que el bit 1 este en la misma posicion del PIN que queremos,
+    *Lo siguiente es modificar la mascara para que el bit 1 de lamascara, este en la misma posicion del PIN que queremos,
      para eso usamos el shift a la izquierda: 1<<handlerUserPin->GPIO_PinConfig.GPIO_PinNumber
      Le estamos diciendo que al bit 1, lo desplace a la izquierda tantas veces como el numero del pin:
-     1<<5 = 100000
+     000001<<5 = 100000
     */
 		handlerUserPin->pGPIOx->ODR = handlerUserPin->pGPIOx->ODR ^ (1<<handlerUserPin->GPIO_PinConfig.GPIO_PinNumber);
 	}
@@ -76,9 +131,9 @@ int main(void){
 	//aqui se ejecuta la funcion principal
 	while(1){
 
-		//le decimos al programa que si lee un cambio en el boton, cambie el estado del LED
+		//le decimos al programa que si lee un cambio en el boton, cambie el estado del LED con ReadPin, que recoge los datos de el PIN en el ODR
 		if(GPIO_ReadPin(&handlerUserButton )==0){
-			GPIOxTooglePin(&handlerUserLedPin);   //con la funcion toogle cambiamos el estado del PIN
+			GPIOxTooglePin(&handlerUserLedPin);   //si hay un cambiom, con la funcion toogle cambiamos el estado del PIN
 		}
 
 
@@ -88,7 +143,7 @@ int main(void){
 		}
 
      /* Lo que hace el ciclo for es ejecutar procesos que retrasan que el primer condicional se active de nuevo, pues la capacidad del mirocontrolador hace que se
-      * detecten miles de pulsos en un segundo (esto hace que cuando se pulse el boton ocuran cosas extranas). Por lo anterior se debe esperar lo que dure en procesar
+      * detecten miles de pulsos en un segundo (esto hace que cuando se pulse el boton ocurran cosas extranas). Por lo anterior se debe esperar lo que dure en procesar
       *  el ciclo para volver a activar el boton.
       */
 	}
