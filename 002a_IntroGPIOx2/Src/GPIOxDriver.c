@@ -155,17 +155,14 @@ uint32_t GPIO_ReadPin(GPIO_Handler_t *pPinHandler){
 	//Cargamos el valor del registro IDR, desplazando a derecha tantas veces como la ubicación
 	// del pin especifico
 	pinValue = (pPinHandler->pGPIOx->IDR>>pPinHandler->GPIO_PinConfig.GPIO_PinNumber);
+
+
+	pinValue = pinValue & 0b1;
+
 	/* no me retorna la posicion, sino la configuracion.
 	 * 0 0 0 0 0 0 0 0 0 1 0 1 0 0 0 0
 	 * 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 1
-	 *
 	 */
-
-	pinValue = pinValue & 0b1;
-/*aplique una mascara
- *
- */
-
 	return pinValue;
 
 }
