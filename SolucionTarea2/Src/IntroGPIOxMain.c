@@ -52,7 +52,6 @@ uint32_t GPIO_ReadPin(GPIO_Handler_t *pPinHandler){
 
 
 uint32_t i = 0;
-int a;
 
 //////  PUNTO 2 /////
 
@@ -93,17 +92,17 @@ int main(void){
 	// Aqui declaramos las propiedades del boton interno
 	handlerUserButton.pGPIOx = GPIOC;                                              //numero de PUERTO
 	handlerUserButton.GPIO_PinConfig.GPIO_PinNumber			= PIN_13;              //Numero del PIN
-	handlerUserButton.GPIO_PinConfig.GPIO_PinMode			= GPIO_MODE_IN;        //tipo salida
+	handlerUserButton.GPIO_PinConfig.GPIO_PinMode			= GPIO_MODE_IN;        //tipo entrada
 	handlerUserButton.GPIO_PinConfig.GPIO_PinOPType			= GPIO_OTYPE_PUSHPULL; //defino que es pushpull
 	handlerUserButton.GPIO_PinConfig.GPIO_PinPuPdControl	= GPIO_PUPDR_NOTHING;  //pull up pull down
 	handlerUserButton.GPIO_PinConfig.GPIO_PinSpeed			= GPIO_OSPEED_MEDIUM;  // vel media
 	handlerUserButton.GPIO_PinConfig.GPIO_PinAltFunMode		= AF0;				   //Ninguna función.
 	// Aqui declaramos las propiedades del boton externo
-	handlerUserButton1.pGPIOx = GPIOC;                                              //numero de PUERTO
-	handlerUserButton1.GPIO_PinConfig.GPIO_PinNumber		= PIN_6;              //Numero del PIN
-	handlerUserButton1.GPIO_PinConfig.GPIO_PinMode			= GPIO_MODE_IN;        //tipo salida
+	handlerUserButton1.pGPIOx = GPIOC;                                             //numero de PUERTO
+	handlerUserButton1.GPIO_PinConfig.GPIO_PinNumber		= PIN_6;               //Numero del PIN
+	handlerUserButton1.GPIO_PinConfig.GPIO_PinMode			= GPIO_MODE_IN;        //tipo entrada
 	handlerUserButton1.GPIO_PinConfig.GPIO_PinOPType		= GPIO_OTYPE_PUSHPULL; //defino que es pushpull
-	handlerUserButton1.GPIO_PinConfig.GPIO_PinPuPdControl	= GPIO_PUPDR_PULLDOWN;  //pull up pull down
+	handlerUserButton1.GPIO_PinConfig.GPIO_PinPuPdControl	= GPIO_PUPDR_PULLDOWN; //pull down
 	handlerUserButton1.GPIO_PinConfig.GPIO_PinSpeed			= GPIO_OSPEED_MEDIUM;  // vel media
 	handlerUserButton1.GPIO_PinConfig.GPIO_PinAltFunMode	= AF0;				   //Ninguna función.
 
@@ -117,7 +116,7 @@ int main(void){
 	// Aqui declaramos las propiedades del LED Interno
 	handlerUserLedPin.pGPIOx = GPIOA;
 	handlerUserLedPin.GPIO_PinConfig.GPIO_PinNumber			= PIN_5;
-	handlerUserLedPin.GPIO_PinConfig.GPIO_PinMode			= GPIO_MODE_OUT;       //entrada o salida
+	handlerUserLedPin.GPIO_PinConfig.GPIO_PinMode			= GPIO_MODE_OUT;       //salida
 	handlerUserLedPin.GPIO_PinConfig.GPIO_PinOPType			= GPIO_OTYPE_PUSHPULL; //defino que es pushpull
 	handlerUserLedPin.GPIO_PinConfig.GPIO_PinPuPdControl	= GPIO_PUPDR_NOTHING;  //pull up pull down
 	handlerUserLedPin.GPIO_PinConfig.GPIO_PinSpeed			= GPIO_OSPEED_MEDIUM;  // vel media
@@ -126,7 +125,7 @@ int main(void){
 	// Aqui declaramos las propiedades del LED 1
 	handlerUserLedPin1.pGPIOx = GPIOC;
 	handlerUserLedPin1.GPIO_PinConfig.GPIO_PinNumber		= PIN_10;
-	handlerUserLedPin1.GPIO_PinConfig.GPIO_PinMode			= GPIO_MODE_OUT;       //entrada o salida
+	handlerUserLedPin1.GPIO_PinConfig.GPIO_PinMode			= GPIO_MODE_OUT;       //salida
 	handlerUserLedPin1.GPIO_PinConfig.GPIO_PinOPType		= GPIO_OTYPE_PUSHPULL; //defino que es pushpull
 	handlerUserLedPin1.GPIO_PinConfig.GPIO_PinPuPdControl	= GPIO_PUPDR_NOTHING;  //pull up pull down
 	handlerUserLedPin1.GPIO_PinConfig.GPIO_PinSpeed			= GPIO_OSPEED_MEDIUM;  // vel media
@@ -135,7 +134,7 @@ int main(void){
 	// Aqui declaramos las propiedades del LED 2
 	handlerUserLedPin2.pGPIOx = GPIOC;
 	handlerUserLedPin2.GPIO_PinConfig.GPIO_PinNumber		= PIN_11;
-	handlerUserLedPin2.GPIO_PinConfig.GPIO_PinMode			= GPIO_MODE_OUT;       //entrada o salida
+	handlerUserLedPin2.GPIO_PinConfig.GPIO_PinMode			= GPIO_MODE_OUT;       //salida
 	handlerUserLedPin2.GPIO_PinConfig.GPIO_PinOPType		= GPIO_OTYPE_PUSHPULL; //defino que es pushpull
 	handlerUserLedPin2.GPIO_PinConfig.GPIO_PinPuPdControl	= GPIO_PUPDR_NOTHING;  //pull up pull down
 	handlerUserLedPin2.GPIO_PinConfig.GPIO_PinSpeed			= GPIO_OSPEED_MEDIUM;  // vel media
@@ -166,15 +165,10 @@ int main(void){
 	while(1){
 
 
-
-
-
-
-
-		//le decimos al programa que si lee un cambio en el boton, cambie el estado del LED con ReadPin(que recoge los datos de el PIN en el IDR)
+		//le decimos al programa que si lee un cambio en el boton con ReadPin (que recoge los datos de el PIN en el IDR), cambie el estado del LED
 		if(GPIO_ReadPin(&handlerUserButton )==0){
-			GPIOxTooglePin(&handlerUserLedPin);
-			//La funcion de a continuacion genera un retraso entre los pulsos, pues sin esta funcion, cuando se pulsa el boton el microcontrolar procesa miles de pulsos.
+			GPIOxTooglePin(&handlerUserLedPin); //Para cambiar el estado del PIN usamos la funcion previamente definida
+			//La funcion de a continuacion genera un retraso entre los pulsos.
 			for(i=0;i<200000;i++){
 				NOP();
 			}
@@ -190,7 +184,7 @@ int main(void){
 /////PUNTO 4//////
 
 
-		//Le decimos al programa que si se ejecuta el boton1(el externo) se inicie el ciclo
+		//Le decimos al programa que si se ejecuta el boton1 (el externo) se inicie el ciclo
 		if(GPIO_ReadPin(&handlerUserButton1)){
 
 			//Primero se prenden los 3 leds simultaneamente (Aunque tecnicamente no sea simultanea la instruccion, asi lo percibimos)
