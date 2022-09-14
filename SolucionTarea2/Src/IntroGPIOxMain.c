@@ -157,6 +157,10 @@ int main(void){
 	GPIO_Config(&handlerUserLedPin);
 	GPIO_Config(&handlerUserButton);
 	GPIO_Config(&handlerUserButton1);
+	//Reseteo los pines externos
+	GPIO_WritePin(&handlerUserLedPin1, RESET);
+	GPIO_WritePin(&handlerUserLedPin2, RESET);
+	GPIO_WritePin(&handlerUserLedPin2, RESET);
 
 
 /////PUNTO 3////////
@@ -166,7 +170,10 @@ int main(void){
 
 
 		//le decimos al programa que si lee un cambio en el boton con ReadPin (que recoge los datos de el PIN en el IDR), cambie el estado del LED
-		if(GPIO_ReadPin(&handlerUserButton )==0){
+		/* Segun el Refernce Diagram, el boton es pull up, lo que significa que antes de pulsarlo esta dejando pasar Vcc. Por ende, para inciar
+		 * el ciclo, el estado del pin debe cambiar a 0
+		 */
+		if(GPIO_ReadPin(&handlerUserButton)==0){
 			GPIOxTooglePin(&handlerUserLedPin); //Para cambiar el estado del PIN usamos la funcion previamente definida
 			//La funcion de a continuacion genera un retraso entre los pulsos.
 			for(i=0;i<200000;i++){
