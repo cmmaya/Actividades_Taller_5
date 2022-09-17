@@ -5,7 +5,7 @@
 #include "BasicTimer.h"
 
 
-BasicTimer_Handler_t handlerTimer2 ={0};
+BasicTimer_Handler_t handlerTimer2 = {0};
 GPIO_Handler_t       handlerBlinky = {0};
 
 
