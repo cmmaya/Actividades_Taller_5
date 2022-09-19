@@ -77,35 +77,42 @@ void USART_Config(USART_Handler_t *ptrUsartHandler){
 		ptrUsartHandler->ptrUSARTx->CR1 |= USART_CR1_M;
 
 	}
+
+	//Limpiamos los STOPBITS
+	ptrUsartHandler->ptrUSARTx->CR2 &= ~ USART_CR2_STOP;
+
 	// 2.4 Configuramos los stop bits (SFR USART_CR2)
 	switch(ptrUsartHandler->USART_Config.USART_stopbits){
 	case USART_STOPBIT_1: {
 		// Debemoscargar el valor 0b00 en los dos bits de STOP
 		// Escriba acá su código
-		ptrUsartHandler->ptrUSARTx->CR1 &= ~ USART_CR2_STOP;
+		__NOP();
 		break;
 	}
 	case USART_STOPBIT_0_5: {
 		// Debemoscargar el valor 0b01 en los dos bits de STOP
 		// Escriba acá su código
-		ptrUsartHandler->ptrUSARTx->CR1 &= ~ USART_CR2_STOP_0;
+		ptrUsartHandler->ptrUSARTx->CR2 |=  USART_CR2_STOP_0;
 		break;
 	}
 	case USART_STOPBIT_2: {
 		// Debemoscargar el valor 0b10 en los dos bits de STOP
 		// Escriba acá su código
+		ptrUsartHandler->ptrUSARTx->CR2 |= USART_CR2_STOP_1;
 		break;
-		ptrUsartHandler->ptrUSARTx->CR1 &= ~ USART_CR2_STOP_1;
+
 
 	}
 	case USART_STOPBIT_1_5: {
 		// Debemoscargar el valor 0b11 en los dos bits de STOP
 		// Escriba acá su código
+		ptrUsartHandler->ptrUSARTx->CR2 |= USART_CR2_STOP;
 		break;
 	}
 	default: {
 		// En el casopor defecto seleccionamos 1 bit de parada
 		// Escriba acá su código
+		__NOP();
 		break;
 	}
 	}
@@ -124,30 +131,41 @@ void USART_Config(USART_Handler_t *ptrUsartHandler){
 		// El valor a cargar es 52.0625 -> Mantiza = 52,fraction = 0.0625
 		// Mantiza = 52 = 0x34, fraction = 16 * 0.1875 = 1
 		// Escriba acá su código y los comentarios que faltan
+		ptrUsartHandler->ptrUSARTx->BRR = 0x0341;
 	}
 
 	else if(ptrUsartHandler->USART_Config.USART_baudrate == USART_BAUDRATE_115200){
 		// Escriba acá su código y los comentarios que faltan
+		ptrUsartHandler->ptrUSARTx->BRR = 0x008b;
 	}
 
 	// 2.6 Configuramos el modo: TX only, RX only, RXTX, disable
+
+	//limpiamos el registro
+	ptrUsartHandler->ptrUSARTx->CR1 &= ~USART_CR1_TE;
+	ptrUsartHandler->ptrUSARTx->CR1 &= ~USART_CR1_RE;
+
 	switch(ptrUsartHandler->USART_Config.USART_mode){
 	case USART_MODE_TX:
 	{
 		// Activamos la parte del sistema encargada de enviar
 		// Escriba acá su código
+		ptrUsartHandler->ptrUSARTx->CR1 |= USART_CR1_TE;
 		break;
 	}
 	case USART_MODE_RX:
 	{
 		// Activamos la parte del sistema encargada de recibir
 		// Escriba acá su código
+		ptrUsartHandler->ptrUSARTx->CR1 |= USART_CR1_RE;
 		break;
 	}
 	case USART_MODE_RXTX:
 	{
 		// Activamos ambas partes, tanto transmision como recepcion
 		// Escriba acá su código
+		ptrUsartHandler->ptrUSARTx->CR1 |= USART_CR1_RE;
+		ptrUsartHandler->ptrUSARTx->CR1 |= USART_CR1_TE;
 		break;
 	}
 	case USART_MODE_DISABLE:
@@ -162,6 +180,7 @@ void USART_Config(USART_Handler_t *ptrUsartHandler){
 	{
 		// Actuando por defecto, desactivamos ambos canales
 		ptrUsartHandler->ptrUSARTx->CR1 &= ~USART_CR1_RE;
+		ptrUsartHandler->ptrUSARTx->CR1 &= ~USART_CR1_TE;
 		// Escriba acá su código
 		break;
 	}
@@ -170,14 +189,16 @@ void USART_Config(USART_Handler_t *ptrUsartHandler){
 	// 2.7 Activamos el modulo serial.
 	if(ptrUsartHandler->USART_Config.USART_mode != USART_MODE_DISABLE){
 		// Escriba acá su código
+		ptrUsartHandler->ptrUSARTx->CR1 |= USART_CR1_UE;
 	}
 }
 
 /* funcion para escribir un solo char */
-int writeChar(USART_Handler_t *ptrUsartHandler, int dataToSend ){
+int writeChar(USART_Handler_t *ptrUsartHandler, char dataToSend ){
 	while( !(ptrUsartHandler->ptrUSARTx->SR & USART_SR_TXE)){
 		__NOP();
 	}
+	ptrUsartHandler->ptrUSARTx->DR = dataToSend;
 
 	// Escriba acá su código
 
