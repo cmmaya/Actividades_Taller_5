@@ -18,21 +18,21 @@ void USART_Config(USART_Handler_t *ptrUsartHandler){
 	/* Lo debemos hacer para cada uno de las pisbles opciones que tengamos (USART1, USART2, USART6) */
     /* 1.1 Configuramos el USART1 */
 	if(ptrUsartHandler->ptrUSARTx == USART1){
-		RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
+		RCC->AHB2ENR |= RCC_APB2ENR_USART1EN;
 		// Escriba acá su código
 	}
 	
     /* 1.2 Configuramos el USART2 */
     // Escriba acá su código
 	else if(ptrUsartHandler->ptrUSARTx == USART2){
-		RCC->APB1ENR |= RCC_APB1ENR_USART2EN;
+		RCC->AHB1ENR |= RCC_APB1ENR_USART2EN;
 		// Escriba acá su código
 	}
 
 
     /* 1.3 Configuramos el USART6 */
 	else if(ptrUsartHandler->ptrUSARTx == USART6){
-		RCC->APB2ENR |= RCC_APB2ENR_USART6EN;
+		RCC->AHB2ENR |= RCC_APB2ENR_USART6EN;
 		// Escriba acá su código
 	}
 

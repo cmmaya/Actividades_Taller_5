@@ -148,7 +148,6 @@ void GPIO_WritePin(GPIO_Handler_t *pPinHandler, uint8_t newState){
 /**
  * Funcion para leer el estado de un pin especifico
  */
-
 uint32_t GPIO_ReadPin(GPIO_Handler_t *pPinHandler){
 	//Creamos una variable auxiliar la cual luego retornaremos
 	uint32_t pinValue = 0;
@@ -165,12 +164,5 @@ uint32_t GPIO_ReadPin(GPIO_Handler_t *pPinHandler){
 	 * 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 1
 	 */
 	return pinValue;
-
-}
-
-
-void GPIOxTooglePin(GPIO_Handler_t *handlerUserPin){
-
-handlerUserPin->pGPIOx->ODR = handlerUserPin->pGPIOx->ODR ^ (1<<handlerUserPin->GPIO_PinConfig.GPIO_PinNumber);
 
 }
