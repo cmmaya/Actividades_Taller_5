@@ -6,7 +6,7 @@
 #include "USARTxDriver.h"
 
 
-	char n            = 0;  //contador para el ciclo for
+	int n            = 0;  //contador para el ciclo for
 	char bandera      = 0;  //variable bandera, para avisar cuando se ejecutó la interrupcion
 	int dataToSend    = 1;  //dato para mandar por USART
 	int dataArray[10] = {'h','o','l','a',' ','m','u','n','d','o'};  //arreglo para mandar or USART
@@ -45,7 +45,7 @@ int main(void){
     GPIO_Config(&handlerBlinky);
 
 	//Config el Boton
-	handlerUserButton.pGPIOx = GPIOC;                                              //numero de PUERTO
+	handlerUserButton.pGPIOx                                = GPIOC;               //numero de PUERTO
 	handlerUserButton.GPIO_PinConfig.GPIO_PinNumber			= PIN_13;              //Numero del PIN
 	handlerUserButton.GPIO_PinConfig.GPIO_PinMode			= GPIO_MODE_IN;        //tipo entrada
 	handlerUserButton.GPIO_PinConfig.GPIO_PinOPType			= GPIO_OTYPE_PUSHPULL; //defino que es pushpull
