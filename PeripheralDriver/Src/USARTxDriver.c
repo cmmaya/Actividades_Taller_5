@@ -8,12 +8,15 @@
 #include <stm32f4xx.h>
 #include "USARTxDriver.h"
 
+uint8_t auxRxData = 0;
+
 /**
  * Configurando el puerto Serial...
  * Recordar que siempre se debe comenzar con activar la señal de reloj
  * del periferico que se está utilizando.
  */
 void USART_Config(USART_Handler_t *ptrUsartHandler){
+	__disable_irq();
 	/* 1. Activamos la señal de reloj que viene desde el BUS al que pertenece el periferico */
 	/* Lo debemos hacer para cada uno de las pisbles opciones que tengamos (USART1, USART2, USART6) */
     /* 1.1 Configuramos el USART1 */
@@ -186,12 +189,39 @@ void USART_Config(USART_Handler_t *ptrUsartHandler){
 	}
 	}
 
+
+	//2.8 Verificamos la configuracion de las interrupciones
+    //2.8a Interrupcion por recepcion
+	if(ptrUsartHandler->USART_Config.USART_enableIntRX == USART_RX_INTERRUPT_ENABLE){
+		//Como esta activada, debemos configurar la interrupcion por recepcion
+		/*Debemos activar =la interupcion RX en la configuracion del USART */
+		ptrUsartHandler->ptrUSARTx->CR1 |= USART_CR1_RXNEIE;
+
+		/*Debemos matriuclar la interrupcion en el NVIC */
+		/* Lo debemos hacer para cada uno de las posibles opciones que tengamos  (USART1, USART2, USART6) */
+		if(ptrUsartHandler -> ptrUSARTx == USART1){
+			__NVIC_EnableIRQ(USART1_IRQn);
+		}
+		else if(ptrUsartHandler -> ptrUSARTx == USART2){
+			__NVIC_EnableIRQ(USART2_IRQn);
+		}
+		else if(ptrUsartHandler -> ptrUSARTx == USART6){
+			__NVIC_EnableIRQ(USART6_IRQn);
+		}
+
+}
+
+	else{
+		__NOP();
+	}
 	// 2.7 Activamos el modulo serial.
 	if(ptrUsartHandler->USART_Config.USART_mode != USART_MODE_DISABLE){
 		// Escriba acá su código
 		ptrUsartHandler->ptrUSARTx->CR1 |= USART_CR1_UE;
 	}
+	__enable_irq();
 }
+
 
 /* funcion para escribir un solo char */
 int writeChar(USART_Handler_t *ptrUsartHandler, int dataToSend ){
@@ -204,3 +234,62 @@ int writeChar(USART_Handler_t *ptrUsartHandler, int dataToSend ){
 
 	return dataToSend;
 }
+
+/**/
+void writeMsg(USART_Handler_t *ptrUsartHandler, char *msgToSend){
+	while(*msgToSend != '\0'){
+		writeChar(ptrUsartHandler, *msgToSend);
+		msgToSend++;
+	}
+}
+
+uint8_t getRxData(void){
+	return auxRxData;
+}
+
+/*Handler de la interrupcion del USART
+ * Aca deben estar todas las interrupciones asociadas: TX, RX, PE...
+ */
+__attribute__((weak)) void usart1Rx_Callback(void){
+	  /* NOTE : This function should not be modified*/
+
+	__NOP();
+}
+
+__attribute__((weak)) void usart2Rx_Callback(void){
+	  /* NOTE : This function should not be modified*/
+
+	__NOP();
+}
+__attribute__((weak)) void usart6Rx_Callback(void){
+	  /* NOTE : This function should not be modified*/
+	__NOP();
+}
+
+
+void USART1_IRQHandler(void){
+	//Evaluamos si la interrucion que se dio es RX
+	if(USART1->SR & USART_SR_RXNE){
+		auxRxData = (uint8_t) USART1->DR;
+		usart1Rx_Callback();
+	}
+}
+void USART2_IRQHandler(void){
+	//Evaluamos si la interrucion que se dio es RX
+	if(USART2->SR & USART_SR_RXNE){
+		auxRxData = (uint8_t) USART2->DR;
+		usart2Rx_Callback();
+	}
+}
+void USART6_IRQHandler(void){
+	//Evaluamos si la interrucion que se dio es RX
+	if(USART6->SR & USART_SR_RXNE){
+		auxRxData = (uint8_t) USART6->DR;
+		usart6Rx_Callback();
+	}
+}
+
+
+
+
+
