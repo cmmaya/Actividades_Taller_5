@@ -231,3 +231,8 @@ int main(void){
 	}
 
 }
+// Hay un error en la configuración del pryecto, no estan importando los archivos .h
+// Ademas este código esta presentado opr Juan Pablo rengifo... es una copia de su proyecto?
+// Te califico 0.0 porque el programa no compila y así no puede seguir revisando.
+
+
