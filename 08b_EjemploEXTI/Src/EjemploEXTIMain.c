@@ -12,7 +12,7 @@ int main(void){
 	handlerUserButton.GPIO_PinConfig.GPIO_PinNumber = PIN_13;
 	handlerUserButton.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_IN;
 	handlerUserButton.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_PUPDR_NOTHING;
-	GPIO_Config(&handlerUserButton)
+	GPIO_Config(&handlerUserButton);
 
 	handlerUserLed.pGPIOx = GPIOa;
 	handlerUserLed.GPIO_PinConfig.GPIO_PinNumber = PIN_5;

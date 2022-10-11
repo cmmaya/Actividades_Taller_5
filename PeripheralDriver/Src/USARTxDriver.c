@@ -269,6 +269,7 @@ __attribute__((weak)) void usart6Rx_Callback(void){
 
 void USART1_IRQHandler(void){
 	//Evaluamos si la interrucion que se dio es RX
+
 	if(USART1->SR & USART_SR_RXNE){
 		auxRxData = (uint8_t) USART1->DR;
 		usart1Rx_Callback();
@@ -276,6 +277,7 @@ void USART1_IRQHandler(void){
 }
 void USART2_IRQHandler(void){
 	//Evaluamos si la interrucion que se dio es RX
+
 	if(USART2->SR & USART_SR_RXNE){
 		auxRxData = (uint8_t) USART2->DR;
 		usart2Rx_Callback();
@@ -283,6 +285,7 @@ void USART2_IRQHandler(void){
 }
 void USART6_IRQHandler(void){
 	//Evaluamos si la interrucion que se dio es RX
+
 	if(USART6->SR & USART_SR_RXNE){
 		auxRxData = (uint8_t) USART6->DR;
 		usart6Rx_Callback();
