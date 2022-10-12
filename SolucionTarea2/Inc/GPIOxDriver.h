@@ -12,7 +12,7 @@
 #define GPIOXDRIVER_H_
 
 // Incluyendo este archivo estamos incluyendo tambien el correspondiente al GPIOx
-#include "stm32f411xx_hal.h"
+#include "Stm32f411xx_hal.h"
 
 typedef struct
 {
