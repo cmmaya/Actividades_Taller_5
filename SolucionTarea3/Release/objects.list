@@ -1,5 +1,4 @@
-"./Src/main2.o"
-"./Src/mainEstudiantesP2.o"
+"./Src/IntroGPIOxMain.o"
 "./Src/syscalls.o"
 "./Src/sysmem.o"
 "./Startup/startup_stm32f411retx.o"

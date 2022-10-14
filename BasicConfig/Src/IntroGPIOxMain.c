@@ -29,7 +29,7 @@ int main(void){
 	handlerTimer2.TIMx_Config.TIMx_period = 2500;  //250ms
 
 	BasicTimer_Config(&handlerTimer2);
-
+	startTimer(&handlerTimer2);
 
 
 while(1){

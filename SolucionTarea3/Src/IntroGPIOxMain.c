@@ -70,7 +70,7 @@ int main(void){
 	handlerTimer2.TIMx_Config.TIMx_speed                    = BTIMER_SPEED_100us;  //velocidad del conteo
 	handlerTimer2.TIMx_Config.TIMx_period                   = 2500;  //250ms       //periodo de la interrupcion
 	BasicTimer_Config(&handlerTimer2);
-
+	startTimer(&handlerTimer2);
 
 
 

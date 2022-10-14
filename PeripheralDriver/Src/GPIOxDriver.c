@@ -174,3 +174,10 @@ void GPIOxTooglePin(GPIO_Handler_t *handlerUserPin){
 handlerUserPin->pGPIOx->ODR = handlerUserPin->pGPIOx->ODR ^ (1<<handlerUserPin->GPIO_PinConfig.GPIO_PinNumber);
 
 }
+
+
+//void configurarGPIOleds(GPIO_TypeDef* GPIOX,uint8_t PIN_X, GPIO_Handler_t *handlerPXX){
+//	handlerPXX->pGPIOx =  GPIOX;
+//	handlerPXX->GPIO_PinConfig.GPIO_PinNumber = PIN_X;
+//	handlerPXX->GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_OUT;
+//}

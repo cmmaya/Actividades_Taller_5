@@ -5,20 +5,17 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../Src/main2.c \
-../Src/mainEstudiantesP2.c \
+../Src/IntroGPIOxMain.c \
 ../Src/syscalls.c \
 ../Src/sysmem.c 
 
 OBJS += \
-./Src/main2.o \
-./Src/mainEstudiantesP2.o \
+./Src/IntroGPIOxMain.o \
 ./Src/syscalls.o \
 ./Src/sysmem.o 
 
 C_DEPS += \
-./Src/main2.d \
-./Src/mainEstudiantesP2.d \
+./Src/IntroGPIOxMain.d \
 ./Src/syscalls.d \
 ./Src/sysmem.d 
 
