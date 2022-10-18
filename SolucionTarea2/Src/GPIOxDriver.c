@@ -162,6 +162,7 @@ uint32_t GPIO_ReadPin(GPIO_Handler_t *pPinHandler){
 	 */
 
 	pinValue = pinValue & 0b1;
+	// OK
 /*aplique una mascara
  *
  */

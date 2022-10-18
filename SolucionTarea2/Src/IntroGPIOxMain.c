@@ -46,7 +46,7 @@ uint32_t GPIO_ReadPin(GPIO_Handler_t *pPinHandler){
 
 #include <stdint.h>
 
-#include "stm32f411xx_hal.h"
+#include "Stm32f411xx_hal.h"
 #include "GPIOxDriver.h"
 
 
@@ -80,6 +80,7 @@ uint32_t i = 0;
      000001<<5 = 100000
     */
 		handlerUserPin->pGPIOx->ODR = handlerUserPin->pGPIOx->ODR ^ (1<<handlerUserPin->GPIO_PinConfig.GPIO_PinNumber);
+		// OK, pero esta función corresponde al gpio driver
 	}
 
 
