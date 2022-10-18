@@ -43,5 +43,6 @@ void GPIO_WritePin (GPIO_Handler_t *pPinHandler , uint8_t newState);
 uint32_t GPIO_ReadPin (GPIO_Handler_t *pPinHandler);
 
 
+
 #endif /* INC_GPIOXDRIVER_H_ */
 
