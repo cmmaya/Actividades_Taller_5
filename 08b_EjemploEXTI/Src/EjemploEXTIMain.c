@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include "GPIOxDriver.h"
 #include "BasicTimer.h"
+#include "ExtiDriver.h"
 
 GPIO_Handler_t handlerUserButton = {0};
 GPIO_Handler_t handlerUserLed    = {0};

@@ -1,8 +1,5 @@
 /*
  * AdcDriver.c
- *
- *  Created on: Month XX, 2022
- *      Author: namontoy
  */
 #include "AdcDriver.h"
 #include "GPIOxDriver.h"
@@ -13,6 +10,7 @@ uint16_t	adcRawData = 0;
 void adc_Config(ADC_Config_t *adcConfig){
 	/* 1. Configuramos el PinX para que cumpla la función de canal análogo deseado. */
 	configAnalogPin(adcConfig->channel);
+
 
 	/* 2. Activamos la señal de reloj para el periférico ADC1 (bus APB2)*/
 	// Escriba su código acá
@@ -87,10 +85,18 @@ void adc_Config(ADC_Config_t *adcConfig){
 
 	/* 8. Configuramos la secuencia y cuantos elementos hay en la secuencia */
 	// Al hacerlo todo 0, estamos seleccionando solo 1 elemento en el conteo de la secuencia
-	ADC1->SQR1 = 0;
+	ADC1->SQR1 &= ~ADC_SQR1_L;
 
 	// Asignamos el canal de la conversión a la primera posición en la secuencia
-	ADC1->SQR3 |= (adcConfig->channel << 0);
+	if(adcConfig->channel >= 0 && adcConfig->channel <= 6){
+		ADC1->SQR3 |= (adcConfig->channel << 5*adcConfig->priority);
+	}
+	else if(adcConfig->channel >=7  && adcConfig->channel <= 12){
+		ADC1->SQR2 |= adcConfig->channel << 5*(adcConfig->priority - 6);
+	}
+	else if(adcConfig->channel >= 13 && adcConfig->channel <= 16){
+		ADC1->SQR1 |= adcConfig->channel << 5*(adcConfig->priority - 12);
+	}
 
 	/* 9. Configuramos el preescaler del ADC en 2:1 (el mas rápido que se puede tener */
 	ADC->CCR |= ADC_CCR_ADCPRE_0;
@@ -189,6 +195,7 @@ __attribute__ ((weak)) void adcComplete_Callback(void){
  * dicho driver.
  */
 void configAnalogPin(uint8_t adcChannel) {
+	GPIO_Handler_t handlerAdcPin = {0};
 
 	// Con este switch seleccionamos el canal y lo configuramos como análogo.
 	switch (adcChannel) {
@@ -320,4 +327,20 @@ void configAnalogPin(uint8_t adcChannel) {
 	// carga la configuración con el driver del GPIOx
 	handlerAdcPin.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_ANALOG;
 	GPIO_Config(&handlerAdcPin);
+}
+
+void MultichannelADC(uint8_t L){
+	ADC1->CR2 |= ADC_CR2_EOCS;
+	ADC1->CR1 |= ADC_CR1_SCAN;
+	ADC1->SQR1 &= ~ ADC_SQR1_L;
+	ADC1->SQR1 |= L << ADC_SQR1_L_Pos; //Escribo el numero de ADC que voy a usar
+}
+
+
+void adcConfigExternal(void){
+	//activamos evento externo, flanco bajada
+	ADC1->CR2 |= ADC_CR2_EXTEN_1;
+
+	//evento externo sleeccionado para lanzar la conversion adc
+	ADC1->CR2 |= (0xF << ADC_CR2_EXTSEL_Pos);
 }

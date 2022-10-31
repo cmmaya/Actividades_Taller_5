@@ -35,6 +35,8 @@ USART_Handler_t handlerUsart2		= {0};
 
 // Configuración ADC
 ADC_Config_t 		adcConfig 		= {0};
+ADC_Config_t 		adcConfig2 		= {0};
+
 BasicTimer_Handler_t	handlerAdcTimer		= {0};
 
 // Variables USART
@@ -56,9 +58,12 @@ void InitSystem(void);
  * */
 int main(void) {
 
+
+
 	// Inicializamos todos los elementos del sistema
 	InitSystem();
 
+	MultichannelADC(1);
 	/* Loop forever */
 	while (1) {
 
@@ -87,12 +92,17 @@ int main(void) {
 
 		// Mandamos los valores de la conversion ADC
 		if(adcIsComplete == SET){
+
 			// Seccionamos el valor en un arreglo
 			sprintf(bufferData, "%u \n", adcValue);
 
 			// Enviamos el dato del ADC resultante
 			writeMsg(&handlerUsart2, bufferData);
 
+			adcValue = getADC();
+			sprintf(bufferData, "%u \n", adcValue);
+
+			writeMsg(&handlerUsart2, bufferData);
 			// Bajamos la bandera
 			adcIsComplete = RESET;
 		}
@@ -107,9 +117,9 @@ int main(void) {
 void InitSystem(void){
 
 	// Configurando el pin para el Led_Blinky
-	handlerStateLed.pGPIOx 							= GPIOA;
-	handlerStateLed.GPIO_PinConfig.GPIO_PinNumber	= PIN_5;
-	handlerStateLed.GPIO_PinConfig.GPIO_PinMode		= GPIO_MODE_OUT;
+	handlerStateLed.pGPIOx 								= GPIOA;
+	handlerStateLed.GPIO_PinConfig.GPIO_PinNumber		= PIN_5;
+	handlerStateLed.GPIO_PinConfig.GPIO_PinMode			= GPIO_MODE_OUT;
 	handlerStateLed.GPIO_PinConfig.GPIO_PinOPType		= GPIO_OTYPE_PUSHPULL;
 	handlerStateLed.GPIO_PinConfig.GPIO_PinSpeed		= GPIO_OSPEED_FAST;
 	handlerStateLed.GPIO_PinConfig.GPIO_PinPuPdControl	= GPIO_PUPDR_NOTHING;
@@ -168,21 +178,30 @@ void InitSystem(void){
 	handlerAdcTimer.ptrTIMx						= TIM4;
 	handlerAdcTimer.TIMx_Config.TIMx_mode 		= BTIMER_MODE_UP;
 	handlerAdcTimer.TIMx_Config.TIMx_speed 		= BTIMER_SPEED_1ms;
-	handlerAdcTimer.TIMx_Config.TIMx_period 	= 10;
+	handlerAdcTimer.TIMx_Config.TIMx_period 	= 5;
 
 	// Cargamos la configuración del timer
 	BasicTimer_Config(&handlerAdcTimer);
 
 	//Se establecen las configuraciones del ADC
-	adcConfig.channel				= ADC_CHANNEL_0;
+	adcConfig.channel				= ADC_CHANNEL_1;
 	adcConfig.dataAlignment 		= ADC_ALIGNMENT_RIGHT;
 	adcConfig.resolution 			= ADC_RESOLUTION_12_BIT;
-	adcConfig.samplingPeriod		= ADC_SAMPLING_PERIOD_15_CYCLES;
+	adcConfig.samplingPeriod		= 111;///ADC_SAMPLING_PERIOD_15_CYCLES;
+	adcConfig.priority				= 0;
+
+	adcConfig2.channel				= ADC_CHANNEL_0;
+	adcConfig2.dataAlignment 		= ADC_ALIGNMENT_RIGHT;
+	adcConfig2.resolution 			= ADC_RESOLUTION_12_BIT;
+	adcConfig2.samplingPeriod		= 111; //ADC_SAMPLING_PERIOD_15_CYCLES;
+	adcConfig2.priority				= 1;
 
 	//Se carga la configuración del ADC
 	adc_Config(&adcConfig);
+	adc_Config(&adcConfig2);
 
 }
+
 
 // ADC (conversión) Callback
 void adcComplete_Callback(void){

@@ -1,8 +1,5 @@
 /*
  * BasicTimer.c
- *
- *  Created on: Apr 18, 2022
- *      Author: namontoy
  */
 
 #include "BasicTimer.h"

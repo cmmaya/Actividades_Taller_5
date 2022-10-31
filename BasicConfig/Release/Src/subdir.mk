@@ -5,35 +5,20 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../Src/AdcDriver.c \
-../Src/BasicTimer.c \
-../Src/ExtiDriver.c \
-../Src/GPIOxDriver.c \
-../Src/I2CDriver.c \
-../Src/PwmDriver.c \
-../Src/USARTxDriver.c \
+../Src/IntroGPIOxMain.c \
+../Src/PWMMain.c \
 ../Src/syscalls.c \
 ../Src/sysmem.c 
 
 OBJS += \
-./Src/AdcDriver.o \
-./Src/BasicTimer.o \
-./Src/ExtiDriver.o \
-./Src/GPIOxDriver.o \
-./Src/I2CDriver.o \
-./Src/PwmDriver.o \
-./Src/USARTxDriver.o \
+./Src/IntroGPIOxMain.o \
+./Src/PWMMain.o \
 ./Src/syscalls.o \
 ./Src/sysmem.o 
 
 C_DEPS += \
-./Src/AdcDriver.d \
-./Src/BasicTimer.d \
-./Src/ExtiDriver.d \
-./Src/GPIOxDriver.d \
-./Src/I2CDriver.d \
-./Src/PwmDriver.d \
-./Src/USARTxDriver.d \
+./Src/IntroGPIOxMain.d \
+./Src/PWMMain.d \
 ./Src/syscalls.d \
 ./Src/sysmem.d 
 

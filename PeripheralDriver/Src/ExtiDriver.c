@@ -1,8 +1,5 @@
 /*
  * ExtiDriver.c
- *
- *  Created on: XXX, 2022
- *      Author: namontoy
  */
 
 #include "ExtiDriver.h"
@@ -876,5 +873,51 @@ void EXTI15_10_IRQHandler(void) {
 		// llamamos al callback
 		callback_extInt15();
 	}
+
+}
+
+void configExternalTrigger(EXTI_Config_t *extiConfig){
+	//Activamos el acceso al sysconfig
+	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
+	// Ahora seleccionamos el valor a cargar en la posición, segun sea la selección
+	// del puerto que vamos a utilizar: GPIOA_0, ó GPIOB_0, ó GPIOC_0, etc
+	if (extiConfig->pGPIOHandler->pGPIOx == GPIOA) {
+		SYSCFG->EXTICR[2] |= (SYSCFG_EXTICR3_EXTI11_PA);
+
+	} else if (extiConfig->pGPIOHandler->pGPIOx == GPIOB) {
+		SYSCFG->EXTICR[2] |= (SYSCFG_EXTICR3_EXTI11_PB);
+
+	} else if (extiConfig->pGPIOHandler->pGPIOx == GPIOC) {
+		SYSCFG->EXTICR[2] |= (SYSCFG_EXTICR3_EXTI11_PC);
+
+	} else if (extiConfig->pGPIOHandler->pGPIOx == GPIOD) {
+		SYSCFG->EXTICR[2] |= (SYSCFG_EXTICR3_EXTI11_PD);
+
+	} else if (extiConfig->pGPIOHandler->pGPIOx == GPIOE) {
+		SYSCFG->EXTICR[2] |= (SYSCFG_EXTICR3_EXTI11_PE);
+
+	} else if (extiConfig->pGPIOHandler->pGPIOx == GPIOH) {
+		SYSCFG->EXTICR[2] |= (SYSCFG_EXTICR3_EXTI11_PH);
+
+	} else {
+		__NOP();
+	}
+	//Seleccionamos el tipo de flanco
+	switch(extiConfig->edgeType){
+	case EXTERNAL_INTERRUPT_RISING_EDGE:{
+		EXTI->RTSR |= (1U << extiConfig->pGPIOHandler->GPIO_PinConfig.GPIO_PinNumber);
+		EXTI->FTSR &= ~(1U << extiConfig->pGPIOHandler->GPIO_PinConfig.GPIO_PinNumber);
+		break;
+	}
+	case EXTERNAL_INTERRUPT_FALLING_EDGE:{
+		EXTI->RTSR &= ~(0U << extiConfig->pGPIOHandler->GPIO_PinConfig.GPIO_PinNumber);
+		EXTI->FTSR |= (1U << extiConfig->pGPIOHandler->GPIO_PinConfig.GPIO_PinNumber);
+	}
+	default:{
+		break;
+	}
+	}
+	EXTI->EMR |=  (1U << extiConfig->pGPIOHandler->GPIO_PinConfig.GPIO_PinNumber);
+
 
 }

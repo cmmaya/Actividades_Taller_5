@@ -1,8 +1,5 @@
 /*
  * BasicTimer.h
- *
- *  Created on: Apr 18, 2022
- *      Author: namontoy
  */
 
 #ifndef INC_BASICTIMER_H_
@@ -16,6 +13,9 @@
 #define BTIMER_SPEED_10us	160
 #define BTIMER_SPEED_100us	1600
 #define BTIMER_SPEED_1ms	16000
+
+#define BTIMER_INTERRUPT_ENABLE 1
+#define BTIMER_INTERRUPT_DISABLE 0
 
 
 

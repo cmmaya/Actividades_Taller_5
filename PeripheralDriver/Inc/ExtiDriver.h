@@ -1,8 +1,5 @@
 /*
  * ExtiDriver.h
- *
- *  Created on: May 10, 2022
- *      Author: namontoy
  */
 
 #ifndef EXTIDRIVER_H_
@@ -22,6 +19,7 @@ typedef struct
 
 
 void extInt_Config(EXTI_Config_t *extiConfig);
+void configExternalTrigger(EXTI_Config_t *pExtiHandler);
 void callback_extInt0(void);
 void callback_extInt1(void);
 void callback_extInt2(void);
