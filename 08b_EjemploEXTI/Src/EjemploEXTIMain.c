@@ -15,7 +15,7 @@ int main(void){
 	handlerUserButton.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_PUPDR_NOTHING;
 	GPIO_Config(&handlerUserButton);
 
-	handlerUserLed.pGPIOx = GPIOa;
+	handlerUserLed.pGPIOx = GPIOA;
 	handlerUserLed.GPIO_PinConfig.GPIO_PinNumber = PIN_5;
 	handlerUserLed.GPIO_PinConfig.GPIO_PinMode = GPIO_MODE_OUT;
 	handlerUserLed.GPIO_PinConfig.GPIO_PinOPType = GPIO_OTYPE_PUSHPULL;

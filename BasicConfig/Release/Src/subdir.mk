@@ -5,20 +5,26 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
+../Src/I2CMain.c \
 ../Src/IntroGPIOxMain.c \
 ../Src/PWMMain.c \
+../Src/RTCMain.c \
 ../Src/syscalls.c \
 ../Src/sysmem.c 
 
 OBJS += \
+./Src/I2CMain.o \
 ./Src/IntroGPIOxMain.o \
 ./Src/PWMMain.o \
+./Src/RTCMain.o \
 ./Src/syscalls.o \
 ./Src/sysmem.o 
 
 C_DEPS += \
+./Src/I2CMain.d \
 ./Src/IntroGPIOxMain.d \
 ./Src/PWMMain.d \
+./Src/RTCMain.d \
 ./Src/syscalls.d \
 ./Src/sysmem.d 
 

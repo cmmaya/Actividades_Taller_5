@@ -13,10 +13,13 @@
  */
 
 void i2c_config(I2C_Handler_t	*ptrHandlerI2C){
+	//Activamos la senal de reloj para el modulo i2c sleccionado
 	if(ptrHandlerI2C->ptrI2Cx == I2C1){
 		RCC->APB1ENR |= RCC_APB1ENR_I2C1EN;
+
 	}else if(ptrHandlerI2C->ptrI2Cx == I2C2){
 		RCC->APB1ENR |= RCC_APB1ENR_I2C2EN;
+
 	}else if(ptrHandlerI2C->ptrI2Cx == I2C3){
 		RCC->APB1ENR |= RCC_APB1ENR_I2C3EN;
 	}
@@ -89,7 +92,7 @@ void i2c_startTransaction(I2C_Handler_t *ptrHandlerI2C){
 
 	// 2a. esperamos que la vandera del evento start se levante
 	// Mientras esperamos, el valor de SB es 0, entonces la negacion (!) es 1
-	while( !(ptrHandlerI2C->ptrI2Cx->CR1 & I2C_SR1_SB)){
+	while( !(ptrHandlerI2C->ptrI2Cx->SR1 & I2C_SR1_SB)){
 		__NOP();
 	}
 }
@@ -100,7 +103,7 @@ void i2c_restartTransaction(I2C_Handler_t *ptrHandlerI2C){
 
 	// 2a. esperamos que la vandera del evento start se levante
 	// Mientras esperamos, el valor de SB es 0, entonces la negacion (!) es 1
-	while( !(ptrHandlerI2C->ptrI2Cx->CR1 & I2C_SR1_SB)){
+	while( !(ptrHandlerI2C->ptrI2Cx->SR1 & I2C_SR1_SB)){
 		__NOP();
 	}
 }
@@ -186,25 +189,46 @@ uint8_t i2c_readSingleRegister(I2C_Handler_t *ptrHandlerI2C, uint8_t regToRead){
 	//Enviamos la direccion del exclavo y la indicacon LERR
 	i2c_sendSlaveAddressRW(ptrHandlerI2C, ptrHandlerI2C->slaveAddress, I2C_READ_DATA);
 
-
-	//Leemos el dato que envia el esclave
-	auxRead = i2c_readDataByte(ptrHandlerI2C) << 8;
-
-	//mandamos el ack de nuevo
-	i2c_sendAck(ptrHandlerI2C);
-
-	//leemos de nuevo
-	auxRead |= i2c_readDataByte(ptrHandlerI2C);
-
 	//mandamos el send no ack, pa que avabe
 	i2c_sendNoAck(ptrHandlerI2C);
 
 	//Generamos la condicion STOP, pa que se detenga el slave despues de un byte
 	i2c_stopTransaction(ptrHandlerI2C);
+//	//Leemos el dato que envia el esclave
+//	auxRead = i2c_readDataByte(ptrHandlerI2C) << 8;
+//
+//	//mandamos el ack de nuevo
+//	i2c_sendAck(ptrHandlerI2C);
+//
+//	//leemos de nuevo
+//	auxRead |= i2c_readDataByte(ptrHandlerI2C);
+//
+//	//mandamos el send no ack, pa que avabe
+//	i2c_sendNoAck(ptrHandlerI2C);
+//
+//	//Generamos la condicion STOP, pa que se detenga el slave despues de un byte
+//	i2c_stopTransaction(ptrHandlerI2C);
 
-
+	auxRead = i2c_readDataByte(ptrHandlerI2C);
 	return auxRead;
 
 }
 
+void i2c_writeSingleRegister(I2C_Handler_t *ptrHandlerI2C, uint8_t regToRead, uint8_t newValue){
+	//Genermos la condicion de start
+	i2c_startTransaction(ptrHandlerI2C);
+
+	//Enviamos la direccion del esclavo
+	i2c_sendSlaveAddressRW(ptrHandlerI2C, ptrHandlerI2C->slaveAddress, I2C_WRITE_DATA);
+
+	//Enviamos la direccion de memoria
+	i2c_sendMemoryAddress(ptrHandlerI2C, regToRead);
+
+	//Enviamos el valor que deseamos escribir
+	i2c_sendDataByte(ptrHandlerI2C, newValue);
+
+	//Condicion de stop
+	i2c_stopTransaction(ptrHandlerI2C);
+
+}
 

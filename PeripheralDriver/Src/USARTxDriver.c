@@ -139,6 +139,10 @@ void USART_Config(USART_Handler_t *ptrUsartHandler){
 		ptrUsartHandler->ptrUSARTx->BRR = 0x008b;
 	}
 
+	else if(ptrUsartHandler->USART_Config.USART_baudrate == USART_BAUDRATE_57600){
+		// Escriba acá su código y los comentarios que faltan
+		ptrUsartHandler->ptrUSARTx->BRR = 0x116;
+	}
 	// 2.6 Configuramos el modo: TX only, RX only, RXTX, disable
 
 	//limpiamos el registro

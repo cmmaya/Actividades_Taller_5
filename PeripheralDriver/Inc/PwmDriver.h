@@ -1,6 +1,5 @@
 /*
  * PwmDriver.h
-
  */
 
 #ifndef PWMDRIVER_H_
