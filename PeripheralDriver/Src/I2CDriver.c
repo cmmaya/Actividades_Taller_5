@@ -232,3 +232,39 @@ void i2c_writeSingleRegister(I2C_Handler_t *ptrHandlerI2C, uint8_t regToRead, ui
 
 }
 
+void lcd_writeSingleRegister(I2C_Handler_t *ptrHandlerI2C, uint8_t newValue){
+	//Genermos la condicion de start
+	i2c_startTransaction(ptrHandlerI2C);
+
+	//Enviamos la direccion del esclavo
+	i2c_sendSlaveAddressRW(ptrHandlerI2C, ptrHandlerI2C->slaveAddress, I2C_WRITE_DATA);
+
+	//Enviamos el valor que deseamos escribir
+	i2c_sendDataByte(ptrHandlerI2C, newValue);
+
+	//Condicion de stop
+	i2c_stopTransaction(ptrHandlerI2C);
+
+}
+
+uint8_t lcd_readSingleRegister(I2C_Handler_t *ptrHandlerI2C){
+	//Creamos variable aux
+	uint16_t auxRead = 0;
+
+	//Generamos el start
+	i2c_startTransaction(ptrHandlerI2C);
+
+	//Enviamos la direccion del exclavo y la indicacon LERR
+	i2c_sendSlaveAddressRW(ptrHandlerI2C, ptrHandlerI2C->slaveAddress, I2C_READ_DATA);
+
+	//mandamos el send no ack, pa que avabe
+	i2c_sendNoAck(ptrHandlerI2C);
+
+	//Generamos la condicion STOP, pa que se detenga el slave despues de un byte
+	i2c_stopTransaction(ptrHandlerI2C);
+
+
+	auxRead = i2c_readDataByte(ptrHandlerI2C);
+	return auxRead;
+
+}

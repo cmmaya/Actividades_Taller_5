@@ -115,10 +115,10 @@ char * rtc_GetData(void){
 	array[5]= (RTC->TR & RTC_TR_HT)>>RTC_TR_HT_Pos;
 	//month
 	array[6]= (RTC->DR & RTC_DR_MU)>>RTC_DR_MU_Pos;
-	array[7]= (RTC->TR & RTC_DR_MT)>>RTC_DR_MT_Pos;
+	array[7]= (RTC->DR & RTC_DR_MT)>>RTC_DR_MT_Pos;
 	//anhos
 	array[8]= (RTC->DR & RTC_DR_YU)>>RTC_DR_YU_Pos;
-	array[9]= (RTC->TR & RTC_DR_YT)>>RTC_DR_YT_Pos;
+	array[9]= (RTC->DR & RTC_DR_YT)>>RTC_DR_YT_Pos;
 
 	return array;
 }

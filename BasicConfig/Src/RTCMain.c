@@ -32,8 +32,7 @@ void initSystem(void);
 int main(void) {
 	initSystem();
 	rtc_Config();
-
-	rtc_SetTime(2, 2, 2);
+	rtc_SetTime(4, 4, 4);
 	while (1) {
 		datos = rtc_GetData();
 		if (rxData != '\0') {
@@ -45,7 +44,10 @@ int main(void) {
 
 			else if (rxData == 'x') {
 				uint8_t X0 = datos[4];
-				sprintf(bufferData, "dataX = %d \n", X0);
+				uint8_t X1 = datos[5];
+				uint8_t X2 = datos[3];
+				uint8_t X3 = datos[2];
+				sprintf(bufferData, "dataX = %d %d %d %d\n", X1, X0, X2, X3);
 				writeMsg(&handlerCommTerminal, bufferData);
 				rxData = '\0';
 			}
@@ -91,9 +93,9 @@ void initSystem(void){
 	GPIO_Config(&handlerPinRx);
 
 	handlerCommTerminal.ptrUSARTx = USART2;
-	handlerCommTerminal.USART_Config.USART_baudrate 	= USART_BAUDRATE_57600;
-	handlerCommTerminal.USART_Config.USART_datasize		= USART_DATASIZE_9BIT;
-	handlerCommTerminal.USART_Config.USART_parity 		= USART_PARITY_EVEN;
+	handlerCommTerminal.USART_Config.USART_baudrate 	= USART_BAUDRATE_115200;
+	handlerCommTerminal.USART_Config.USART_datasize		= USART_DATASIZE_8BIT;
+	handlerCommTerminal.USART_Config.USART_parity 		= USART_PARITY_NONE;
 	handlerCommTerminal.USART_Config.USART_stopbits 	= USART_STOPBIT_1;
 	handlerCommTerminal.USART_Config.USART_mode			= USART_MODE_RXTX;
 	handlerCommTerminal.USART_Config.USART_enableIntRX	= USART_RX_INTERRUPT_ENABLE;
