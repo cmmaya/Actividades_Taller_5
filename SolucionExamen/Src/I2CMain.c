@@ -20,44 +20,32 @@ char *datosTiempo;
 GPIO_Handler_t handlerLedOK = { 0 };
 GPIO_Handler_t handlerPinTx = { 0 };
 GPIO_Handler_t handlerPinRx = { 0 };
-GPIO_Handler_t handlerI2cSDA = { 0 };
-GPIO_Handler_t handlerI2cSCL = { 0 };
-GPIO_Handler_t LCDI2cSDA = { 0 };
-GPIO_Handler_t LCDI2cSCL = { 0 };
-GPIO_Handler_t handlerRgbGround = { 0 };
-GPIO_Handler_t       handlerAF1 = {0};
-GPIO_Handler_t       handlerAF2 = {0};
-GPIO_Handler_t       handlerAF3 = {0};
 
 BasicTimer_Handler_t handlerStateLed = { 0 };
-BasicTimer_Handler_t handlerTim4 = {0};
 int delayFlag = 0;
-uint8_t tim4Flag = 0;
 
 USART_Handler_t handlerCommTerminal = { 0 };
 uint8_t rxData = 0;
-char greetingMsg[] = "Taller V Rocks!\n";
 char bufferData[64] = "esto es una prueba";
-char bufferReception[64] = {0};
+char greetingMsg[] = "Taller V Rocks!\n";
 
-
-uint8_t counterReception = 0;
-bool stringComplete = false;
-unsigned int firstParameter;
-unsigned int secondParameter;
-char cmd[64] = {0};
-char userMsg[64] = {0};
-uint8_t initdisplay = 0;
-int hsvPeriod = 250;
-
+GPIO_Handler_t handlerI2cSDA = { 0 };
+GPIO_Handler_t handlerI2cSCL = { 0 };
 I2C_Handler_t handlerAccelerometer = { 0 };
+uint8_t i2cBuffer = 0;
+
+GPIO_Handler_t LCDI2cSDA = { 0 };
+GPIO_Handler_t LCDI2cSCL = { 0 };
 I2C_Handler_t handlerLCD = { 0 };
 
 PWM_Handler_t 		handlerPWM1 = {0};
 PWM_Handler_t 		handlerPWM2 = {0};
 PWM_Handler_t 		handlerPWM3 = {0};
-
-
+GPIO_Handler_t       handlerAF1 = {0};
+GPIO_Handler_t       handlerAF2 = {0};
+GPIO_Handler_t       handlerAF3 = {0};
+GPIO_Handler_t       handlerBlinky = {0};
+BasicTimer_Handler_t handlerTimer2 = {0};
 
 #define PI 3.141592654
 #define ACCEL_ADDRESS 0b01010011;
@@ -68,22 +56,11 @@ PWM_Handler_t 		handlerPWM3 = {0};
 #define ACCEL_Y1 53
 #define ACCEL_Z0 54
 #define ACCEL_Z1 55
+
 #define LCD_ADDRESS 0x27;
 uint8_t R;
 uint8_t G;
 uint8_t B;
-uint8_t X1;
-uint8_t X0;
-uint8_t Y1;
-uint8_t Y0;
-uint8_t Z0;
-uint8_t Z1;
-int16_t AccelX;
-int16_t AccelY;
-int16_t AccelZ;
-uint8_t position = 0;
-
-
 void initSystem(void);
 void InitLCD();
 void delay(uint8_t H);
@@ -92,48 +69,119 @@ void writeCmd(uint8_t cmd);
 void cursorSet(uint8_t col, uint8_t row);
 void sendString(uint8_t datos[]);
 uint8_t HsvToRgb(int16_t x, int16_t y);
-int16_t getAccel(void);
-void parseCommands(char *ptrBufferReception);
-void writeString(char *array);
-void selectPos(uint8_t col, uint8_t row);
-
 //Funcion Principal
 int main(void) {
-	rtc_Config();
-	rtc_SetTime(0, 0, 0);
 	initSystem();
-	rtc_Config();
 	i2c_writeSingleRegister(&handlerAccelerometer, ACCEL_PWR, 0b00001000); //Inicio el Acelerometro4
+	//Inicio los PWM
+	enableOutput(&handlerPWM1);
+    startPwmSignal(&handlerPWM1);
+
+	enableOutput(&handlerPWM2);
+    startPwmSignal(&handlerPWM2);
+
+	enableOutput(&handlerPWM3);
+    startPwmSignal(&handlerPWM3);
+
+	InitLCD();  //Inicio el LCD
+	rtc_Config(); //Inicio el RTC
 
 
 	while (1) {
 		datosTiempo = rtc_GetData(); //obtenemos los datos de tiempo
 
-
 		if (rxData != '\0') {
-			//creamos una cadena e identificamos si llega "@" al final
-			bufferReception[counterReception] = rxData;
-			counterReception++;
 
-			if (rxData == '@') {
-				stringComplete = true;
-
-				//agrego linea null para crear string
-				bufferReception[counterReception] = '\0';
-				counterReception = 0;
+			if (rxData == 'm') {
+				writeMsg(&handlerCommTerminal, greetingMsg);
+				rxData = '\0';
 			}
-			rxData ='\0';
 
-		}
-		if(stringComplete){
-			parseCommands(bufferReception);
-			stringComplete = false;
-//			memset(userMsg, '\0', 10);
-		}
+			else if (rxData == 'x') {
+
+				uint8_t X1 = i2c_readSingleRegister(&handlerAccelerometer, ACCEL_X1);
+				uint8_t X0 = i2c_readSingleRegister(&handlerAccelerometer, ACCEL_X0);
+				int16_t AccelX = X0 <<8 | X1;
+				sprintf(bufferData, "dataX = %d \n", (int) AccelX);
+				writeMsg(&handlerCommTerminal, bufferData);
+				rxData = '\0';
+			}
+
+			else if (rxData == 'y') {
+
+				uint8_t Y1 = i2c_readSingleRegister(&handlerAccelerometer, ACCEL_Y1);
+				uint8_t Y0 = i2c_readSingleRegister(&handlerAccelerometer, ACCEL_Y0);
+				int16_t AccelY = Y0 <<8 | Y1;
+				sprintf(bufferData, "dataY = %d \n", (int) AccelY);
+				writeMsg(&handlerCommTerminal, bufferData);
+				rxData = '\0';
+			}
+
+			else if (rxData == 'z') {
+
+				uint8_t Z1 = i2c_readSingleRegister(&handlerAccelerometer, ACCEL_Z1);
+				uint8_t Z0 = i2c_readSingleRegister(&handlerAccelerometer, ACCEL_Z0);
+				int16_t AccelZ = Z0 <<8 | Z1;
+				sprintf(bufferData, "dataZ = %d \n", (int) AccelZ);
+				writeMsg(&handlerCommTerminal, bufferData);
+				rxData = '\0';
+			}
+
+			else if (rxData == 'p') {
+				rtc_Config();
+				rtc_SetTime(22, 59, 40);
+				rxData = '\0';
+			}
+			else if (rxData == 'q') {
+				uint8_t SU  = datosTiempo[0] + 48;
+				uint8_t ST  = datosTiempo[1] + 48;
+				uint8_t MNU = datosTiempo[2] + 48;
+				uint8_t MNT = datosTiempo[3] + 48;
+				uint8_t HU  = datosTiempo[4] + 48;
+				uint8_t HT  = datosTiempo[5] + 48;
+				writeCmd(0x85);
+				writeData(HT);	delay(1);
+				writeData(HU); delay(1);
+				writeData(58); delay(1);
+				writeData(MNT); delay(1);
+				writeData(MNU); delay(1);
+				writeData(58); delay(1);
+				writeData(ST); delay(1);
+				writeData(SU); delay(1);
+
+//				writeCmd(0xC5);
+//
+//				writeData('R');
+//				writeData('I');
+//				writeData('L');
+//				writeData('E');
+//				writeData('Y');
+
+				rxData = '\0';
+			}
+			else if (rxData == 'g') {
+
+				uint8_t X1 = i2c_readSingleRegister(&handlerAccelerometer, ACCEL_X1);
+				uint8_t X0 = i2c_readSingleRegister(&handlerAccelerometer, ACCEL_X0);
+				int16_t AccelX = X0 <<8 | X1;
+				uint8_t Y1 = i2c_readSingleRegister(&handlerAccelerometer, ACCEL_Y1);
+				uint8_t Y0 = i2c_readSingleRegister(&handlerAccelerometer, ACCEL_Y0);
+				int16_t AccelY = Y0 <<8 | Y1;
+				HsvToRgb(AccelX, AccelY);
+
+				sprintf(bufferData, "dataZ = %d %d %d \n", (int) R, (int) G, (int) B);
+				rxData = '\0';
+				updateDuttyCycle(&handlerPWM1, B* 0.588);
+				updateDuttyCycle(&handlerPWM2, G* 0.588);
+				updateDuttyCycle(&handlerPWM3, R* 0.588);
+			}
+			else {
+				rxData = '\0';
+			}
 
 		}
 	}
-
+}
 
 
 void initSystem(void){
@@ -146,16 +194,6 @@ void initSystem(void){
 	handlerLedOK.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_PUPDR_NOTHING;
 	handlerLedOK.GPIO_PinConfig.GPIO_PinSpeed  		= GPIO_OSPEED_FAST;
 	GPIO_Config(&handlerLedOK);
-
-	handlerRgbGround.pGPIOx                             = GPIOC;
-	handlerRgbGround.GPIO_PinConfig.GPIO_PinNumber      = PIN_0;
-	handlerRgbGround.GPIO_PinConfig.GPIO_PinMode		= GPIO_MODE_OUT;
-	handlerRgbGround.GPIO_PinConfig.GPIO_PinOPType  	= GPIO_OTYPE_PUSHPULL;
-	handlerRgbGround.GPIO_PinConfig.GPIO_PinPuPdControl = GPIO_PUPDR_NOTHING;
-	handlerRgbGround.GPIO_PinConfig.GPIO_PinSpeed   	= GPIO_OSPEED_FAST;
-	handlerRgbGround.GPIO_PinConfig.GPIO_PinAltFunMode  = AF0;
-	GPIO_Config(&handlerRgbGround);
-	GPIO_WritePin(&handlerRgbGround, RESET);
 
 	//config los pines del usart
 	handlerPinTx.pGPIOx 							= GPIOA;
@@ -194,14 +232,6 @@ void initSystem(void){
 	handlerStateLed.TIMx_Config.TIMx_interruptEnable = BTIMER_INTERRUPT_ENABLE;
 	BasicTimer_Config(&handlerStateLed);
 	startTimer(&handlerStateLed);
-
-	handlerTim4.ptrTIMx 						= TIM4;
-	handlerTim4.TIMx_Config.TIMx_mode 			= BTIMER_MODE_UP;
-	handlerTim4.TIMx_Config.TIMx_speed 			= BTIMER_SPEED_1ms;
-	handlerTim4.TIMx_Config.TIMx_period 		= hsvPeriod;	//periodod de 250 ms
-	handlerTim4.TIMx_Config.TIMx_interruptEnable = BTIMER_INTERRUPT_ENABLE;
-	BasicTimer_Config(&handlerTim4);
-	startTimer(&handlerTim4);
 
 	//I2C config para el accel
 	handlerI2cSCL.pGPIOx                            = GPIOB;
@@ -306,16 +336,6 @@ void initSystem(void){
     handlerPWM3.config.prescaler  = BTIMER_SPEED_100us;  //250ms
     handlerPWM3.config.duttyCicle = 0;
     pwm_Config(&handlerPWM3);
-
-	enableOutput(&handlerPWM1);
-    startPwmSignal(&handlerPWM1);
-
-	enableOutput(&handlerPWM2);
-    startPwmSignal(&handlerPWM2);
-
-	enableOutput(&handlerPWM3);
-    startPwmSignal(&handlerPWM3);
-
 }
 
 void usart2Rx_Callback(void){
@@ -327,11 +347,6 @@ void BasicTimer2_Callback(void){
 	delayFlag +=1;
 }
 
-void BasicTimer4_Callback(void){
-	GPIOxTooglePin(&handlerRgbGround);
-	tim4Flag = 1;
-}
-
 void delay(uint8_t H){
 	delayFlag = 0;
 	while(delayFlag<H){
@@ -340,13 +355,14 @@ void delay(uint8_t H){
 }
 
 void writeCmd(uint8_t cmd){
+
 	uint8_t cmdMS = cmd & 0xf0;
 	uint8_t cmdLS = (cmd<<4) & 0xf0;
 
-	uint8_t dato1 = cmdMS | 0x0C;
-	uint8_t dato2 = cmdMS | 0x08;
-	uint8_t dato3 = cmdLS | 0x0C;
-	uint8_t dato4 = cmdLS | 0x08;
+	uint8_t dato1 = cmdMS | 0x04;
+	uint8_t dato2 = cmdMS | 0x00;
+	uint8_t dato3 = cmdLS | 0x04;
+	uint8_t dato4 = cmdLS | 0x00;
 
 	lcd_writeSingleRegister(&handlerLCD, dato1);
 	lcd_writeSingleRegister(&handlerLCD, dato2);
@@ -355,6 +371,7 @@ void writeCmd(uint8_t cmd){
 }
 
 void writeData(uint8_t cmd){
+
 	uint8_t cmdMS = cmd & 0xf0;
 	uint8_t cmdLS = (cmd<<4) & 0xf0;
 
@@ -370,59 +387,34 @@ void writeData(uint8_t cmd){
 }
 
 void InitLCD(){
-	delay(64);
-	writeCmd(0x30);
-	delay(16);
-	writeCmd(0x30);
-	delay(16);
-	writeCmd(0x32);
-	writeCmd(0x28);
-	writeCmd(0x0C);
-	writeCmd(0x01);
-	writeCmd(0x06);
+	//trabajamos con 8 bits
+	lcd_writeSingleRegister(&handlerLCD, 0x30);
+	delay(1);
+	lcd_writeSingleRegister(&handlerLCD, 0x30);
+	delay(1);
+	lcd_writeSingleRegister(&handlerLCD, 0x30);
+	delay(1);
+	lcd_writeSingleRegister(&handlerLCD, 0x20);//4bit mode
 
+	//trabajamos con 4 bits
+	delay(1);
+	writeCmd(0x20);//Function Set- 4bit - 2line - 5x8
+	delay(1);
+	writeCmd(0x08);//D=0, C=, D=0   Display off/ data in DDRAM
+	delay(1);
+	writeCmd(0x01);//Clear Display
+	delay(1);
+	writeCmd(0x06);//Entry mode	increment cursor, no shift
+	delay(1);
+	writeCmd(0x0C);//Display on
 }
 
-void writeString(char *array){
-	uint8_t i = 0;
-	while (!(array[i] == '\0')) {
-		writeData(array[i]);
-		i++;
-	}
-}
 
-void selectPos(uint8_t col, uint8_t row){
-	uint8_t i = 0;
-
-	switch(row){
-	case 0:{
-		writeCmd(0x80 + col);
-		break;
-	}
-	case 1:{
-		writeCmd(0xC0 + col);
-		break;
-	}
-	case 2:{
-		writeCmd(0x80 + col);
-		while(i<20){
-			writeData(' ');
-			i++;
-		}
-		break;
-	}
-	case 3:{
-		writeCmd(0xC0 + col);
-		while(i<20){
-			writeData(' ');
-			i++;
-		}
-		break;
-	}
-
-	default:{
-		writeCmd(0x80 + col);
-	}
+void sendString(uint8_t datos[]){
+	uint8_t i=0;
+	while(datos[i] != 0){
+		writeData(datos[i]);
+		i +=1;
 	}
 }
 
@@ -486,257 +478,3 @@ uint8_t HsvToRgb(int16_t x, int16_t y){
 	return B;
 
 }
-
-int16_t getAccel(void){
-	Z1 = i2c_readSingleRegister(&handlerAccelerometer, ACCEL_Z1);
-	Z0 = i2c_readSingleRegister(&handlerAccelerometer, ACCEL_Z0);
-	AccelZ = Z0 <<8 | Z1;
-	if(AccelZ > -6400){
-		Y1 = i2c_readSingleRegister(&handlerAccelerometer, ACCEL_Y1);
-		Y0 = i2c_readSingleRegister(&handlerAccelerometer, ACCEL_Y0);
-		AccelY = Y0 <<8 | Y1;
-		X1 = i2c_readSingleRegister(&handlerAccelerometer, ACCEL_X1);
-		X0 = i2c_readSingleRegister(&handlerAccelerometer, ACCEL_X0);
-		AccelX = X0 <<8 | X1;
-	}
-	else{
-		__NOP();
-	}
-	delay(16);
-
-	return AccelX;
-	return AccelY;
-	return AccelZ;
-
-}
-
-void parseCommands(char *ptrBufferReception) {
-
-
-	sscanf(ptrBufferReception, "%s %u %u %s", cmd, &firstParameter,&secondParameter, userMsg);
-	if (strcmp(cmd, "help") == 0) {
-		writeMsg(&handlerCommTerminal, "Help Menu CMSs: \n");
-		writeMsg(&handlerCommTerminal, "1) help             --Print this menu \n");
-		writeMsg(&handlerCommTerminal, "2) getaccel         --Obtain acceleration, if usermsg x= AccelX, if usermsg y = AccelY ...etc. \n");
-		writeMsg(&handlerCommTerminal, "3) initdisplay      --initialize Display\n");
-		writeMsg(&handlerCommTerminal, "4) starttime        --Set time to 0, press p to pause \n");
-		writeMsg(&handlerCommTerminal, "5) setime           --Set time cmd_#hour_#min, press p to pause. Time is displayed in the LCD \n");
-		writeMsg(&handlerCommTerminal, "6) starthsv         --Start led hsv behaviour, press p to pause  \n");
-		writeMsg(&handlerCommTerminal, "7) setperiod        --SET led hsv blink period, pause the hsv before changing it \n");
-		writeMsg(&handlerCommTerminal, "8) writestring      --writes UserMsg in the LCD row 2, initdisplay before trying \n");
-		writeMsg(&handlerCommTerminal, "9) animation        --START an animation in the LCD, initdisplay before trying \n");
-		writeMsg(&handlerCommTerminal, "10) selectpos       --PRINTS an x in the selected pos, firstparam:col and secondparam:row \n");
-		writeMsg(&handlerCommTerminal, "11) cleardisplay    --clears display \n");
-
-
-
-	}
-	else if (strcmp(cmd, "dummy") == 0) {
-		writeMsg(&handlerCommTerminal, "CMD: dummy \n");
-	}
-	else if (strcmp(cmd, "getaccel") == 0) {
-		getAccel();
-		writeMsg(&handlerCommTerminal, "CMD: get Acceleration \n");
-
-		if (strcmp(userMsg, "x") == 0){
-			sprintf(bufferData, "AccelX= %d \n", (int) AccelX);
-			writeMsg(&handlerCommTerminal, bufferData);
-		}
-
-		else if (strcmp(userMsg, "y") == 0){
-			sprintf(bufferData, "AccelY= %d \n", (int) AccelY);
-			writeMsg(&handlerCommTerminal, bufferData);
-		}
-
-		else if (strcmp(userMsg, "z") == 0){
-			sprintf(bufferData, "AccelZ= %d \n", (int) AccelZ);
-			writeMsg(&handlerCommTerminal, bufferData);
-		}
-
-		else {
-			writeMsg(&handlerCommTerminal, "introduce una componente valida \n");
-		}
-
-	}
-	else if(strcmp(cmd, "usermsg") == 0){
-		writeMsg(&handlerCommTerminal, "CMD: user message \n");
-		writeMsg(&handlerCommTerminal, userMsg);
-		writeMsg(&handlerCommTerminal, "\n");
-	}
-	else if(strcmp(cmd, "initdisplay") == 0){
-		writeMsg(&handlerCommTerminal, "CMD: init display \n");
-		InitLCD();  //Inicio el LCD
-
-		initdisplay = 1;
-	}
-	else if(strcmp(cmd, "starttime") == 0){
-		writeMsg(&handlerCommTerminal, "CMD: start RTC timer \n");
-
-		rtc_Config();
-		rtc_SetTime(0, 0, 0);
-		while (!(rxData == 'p')) {
-			datosTiempo = rtc_GetData(); //obtenemos los datos de tiempo
-			uint8_t SU  = datosTiempo[0];
-			uint8_t ST  = datosTiempo[1];
-			uint8_t MNU = datosTiempo[2];
-			uint8_t MNT = datosTiempo[3];
-			uint8_t HU  = datosTiempo[4];
-			uint8_t HT  = datosTiempo[5];
-			sprintf(bufferData, "time set to %d%d:%d%d:%d%d \n", HT, HU, MNT, MNU, ST, SU);
-			writeMsg(&handlerCommTerminal, bufferData);
-			delay(64);
-		}
-
-	}
-
-	else if(strcmp(cmd, "settime") == 0){
-		if(initdisplay){
-		writeMsg(&handlerCommTerminal, "CMD: set RTC timer \n");
-		writeMsg(&handlerCommTerminal, "press p to pause  \n");
-
-		rtc_Config();
-		rtc_SetTime(firstParameter, secondParameter, 0);
-
-
-		while (!(rxData == 'p')) {
-			datosTiempo = rtc_GetData(); //obtenemos los datos de tiempo
-				uint8_t SU  = datosTiempo[0] + 48;
-				uint8_t ST  = datosTiempo[1] + 48;
-				uint8_t MNU = datosTiempo[2] + 48;
-				uint8_t MNT = datosTiempo[3] + 48;
-				uint8_t HU  = datosTiempo[4] + 48;
-				uint8_t HT  = datosTiempo[5] + 48;
-				writeCmd(0x85);
-				writeData(HT);
-				writeData(HU);
-				writeData(58);
-				writeData(MNT);
-				writeData(MNU);
-				writeData(58);
-				writeData(ST);
-				writeData(SU);
-		}
-		writeMsg(&handlerCommTerminal, "stop  \n");
-
-		}
-		else{
-			writeMsg(&handlerCommTerminal, "init display please \n");
-
-		}
-
-	}
-	else if(strcmp(cmd, "setperiod") == 0){
-		writeMsg(&handlerCommTerminal, "CMD: set period to the LED  \n");
-
-		handlerTim4.TIMx_Config.TIMx_period  = firstParameter;
-		BasicTimer_Config(&handlerTim4);
-
-	}
-
-	else if(strcmp(cmd, "starthsv") == 0){
-		writeMsg(&handlerCommTerminal, "CMD: start HSV  \n");
-
-		while (!(rxData == 'p')) {
-			getAccel();
-			HsvToRgb(AccelX,AccelY);
-			updateDuttyCycle(&handlerPWM1, B* 0.588);
-			updateDuttyCycle(&handlerPWM2, G* 0.588);
-			updateDuttyCycle(&handlerPWM3, R* 0.588);
-			delay(5);
-		}
-		rxData=0;
-		writeMsg(&handlerCommTerminal, "stop \n");
-
-	}
-	else if(strcmp(cmd, "writestring") == 0){
-		if(initdisplay){
-
-		writeMsg(&handlerCommTerminal, "CMD: Write String in LCD  \n");
-		uint8_t i = 0;
-		writeString(userMsg);
-		}
-		else{
-			writeMsg(&handlerCommTerminal, "init display please \n");
-	}
-	}
-
-	else if(strcmp(cmd, "animation") == 0){
-		writeMsg(&handlerCommTerminal, "CMD: Animation  \n");
-		position = 131;
-//		writeCmd(0x01);
-
-		switch (firstParameter) {
-		case 1: {
-			while(!(rxData=='p')){
-			selectPos(0, 0);
-			writeString(userMsg);
-			delay(25);
-
-			selectPos(0, 1);
-			writeString(userMsg);
-			delay(25);
-
-			selectPos(0, 2);
-			writeString(userMsg);
-			delay(25);
-
-			selectPos(0, 3);
-			writeString(userMsg);
-			delay(25);
-
-			selectPos(12, 0);
-			writeString(userMsg);
-			delay(25);
-
-			selectPos(12, 1);
-			writeString(userMsg);
-			delay(25);
-
-			selectPos(12, 2);
-			writeString(userMsg);
-			delay(25);
-
-			selectPos(12, 3);
-			writeString(userMsg);
-			delay(25);
-
-			writeCmd(0x01);
-			delay(64);
-			}
-			writeMsg(&handlerCommTerminal, "stop  \n");
-			rxData = 0;
-			break;
-			}
-		case 2:{
-			uint8_t i = 0;
-			for(i=0; i<40; i++){
-				writeCmd(0x01);
-				delay(2);
-				selectPos(i, 0);
-				writeString(userMsg);
-				delay(64);
-
-			}
-			break;
-		}
-		}
-		}
-
-
-
-	else if(strcmp(cmd, "selectpos") == 0){
-		writeMsg(&handlerCommTerminal, "CMD: Select Position  \n");
-		selectPos(firstParameter, secondParameter);
-		writeData('x');
-
-	}
-
-	else if(strcmp(cmd, "cleardisplay") == 0){
-		writeMsg(&handlerCommTerminal, "CMD: Clear Display  \n");
-		writeCmd(0x01);
-
-	}
-
-
-	}
-

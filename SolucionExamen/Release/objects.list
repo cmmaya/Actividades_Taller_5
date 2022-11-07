@@ -1,0 +1,7 @@
+"./Src/I2CMain.o"
+"./Src/IntroGPIOxMain.o"
+"./Src/PWMMain.o"
+"./Src/RTCMain.o"
+"./Src/syscalls.o"
+"./Src/sysmem.o"
+"./Startup/startup_stm32f411retx.o"
