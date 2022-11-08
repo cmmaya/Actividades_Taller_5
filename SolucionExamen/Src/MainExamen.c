@@ -40,6 +40,12 @@ char greetingMsg[] = "Taller V Rocks!\n";
 char bufferData[64] = "esto es una prueba";
 char bufferReception[64] = {0};
 
+I2C_Handler_t handlerAccelerometer = { 0 };
+I2C_Handler_t handlerLCD = { 0 };
+
+PWM_Handler_t 		handlerPWM1 = {0};
+PWM_Handler_t 		handlerPWM2 = {0};
+PWM_Handler_t 		handlerPWM3 = {0};
 
 uint8_t counterReception = 0;
 bool stringComplete = false;
@@ -50,15 +56,7 @@ char userMsg[64] = {0};
 uint8_t initdisplay = 0;
 int hsvPeriod = 250;
 
-I2C_Handler_t handlerAccelerometer = { 0 };
-I2C_Handler_t handlerLCD = { 0 };
-
-PWM_Handler_t 		handlerPWM1 = {0};
-PWM_Handler_t 		handlerPWM2 = {0};
-PWM_Handler_t 		handlerPWM3 = {0};
-
-
-
+//Defino los macros y las variables auxiliares
 #define PI 3.141592654
 #define ACCEL_ADDRESS 0b01010011;
 #define ACCEL_PWR 45
@@ -95,7 +93,7 @@ uint8_t HT;
 
 
 
-
+//Funciones
 void initSystem(void);
 void InitLCD();
 void delay(uint8_t H);
@@ -114,10 +112,8 @@ int main(void) {
 
 	rtc_Config();
 	initSystem();
-	rtc_Config();
-	i2c_writeSingleRegister(&handlerAccelerometer, ACCEL_PWR, 0b00001000); //Inicio el Acelerometro4
-	delay(200);
-	writeMsg(&handlerCommTerminal, "s");
+	i2c_writeSingleRegister(&handlerAccelerometer, ACCEL_PWR, 0b00001000); //Inicio el Acelerometro
+
 
 
 	while (1) {
@@ -199,7 +195,7 @@ void initSystem(void){
 	handlerCommTerminal.USART_Config.USART_enableIntRX	= USART_RX_INTERRUPT_ENABLE;
 	USART_Config(&handlerCommTerminal);
 
-	//Config el Timer
+	//Config los timer ///////////
 	handlerStateLed.ptrTIMx 						= TIM2;
 	handlerStateLed.TIMx_Config.TIMx_mode 			= BTIMER_MODE_UP;
 	handlerStateLed.TIMx_Config.TIMx_speed 			= BTIMER_SPEED_1ms;
@@ -216,7 +212,7 @@ void initSystem(void){
 	BasicTimer_Config(&handlerTim4);
 	startTimer(&handlerTim4);
 
-	//I2C config para el accel
+	//I2C config para el accel///////////
 	handlerI2cSCL.pGPIOx                            = GPIOB;
 	handlerI2cSCL.GPIO_PinConfig.GPIO_PinNumber     = PIN_6;
 	handlerI2cSCL.GPIO_PinConfig.GPIO_PinMode		= GPIO_MODE_ALTFN;
@@ -241,7 +237,7 @@ void initSystem(void){
 	i2c_config(&handlerAccelerometer);
 
 
-	//I2C config para el LCD
+	//I2C config para el LCD////////
 	LCDI2cSCL.pGPIOx                            = GPIOA;
 	LCDI2cSCL.GPIO_PinConfig.GPIO_PinNumber     = PIN_8;
 	LCDI2cSCL.GPIO_PinConfig.GPIO_PinMode		= GPIO_MODE_ALTFN;
@@ -336,15 +332,16 @@ void usart1Rx_Callback(void){
 	}
 
 void BasicTimer2_Callback(void){
-	GPIOxTooglePin(&handlerLedOK);
 	delayFlag +=1;
 }
 
 void BasicTimer4_Callback(void){
 	GPIOxTooglePin(&handlerRgbGround);
+	GPIOxTooglePin(&handlerLedOK);
 	tim4Flag = 1;
 }
 
+//Usando el Timer 2, creamos un delay. 1 ciclo es 1/64 segundo
 void delay(uint8_t H){
 	delayFlag = 0;
 	while(delayFlag<H){
@@ -352,12 +349,13 @@ void delay(uint8_t H){
 	}
 }
 
+//funcion para escribir comandos en 4 bit (rs=0)
 void writeCmd(uint8_t cmd){
 	uint8_t cmdMS = cmd & 0xf0;
 	uint8_t cmdLS = (cmd<<4) & 0xf0;
 
-	uint8_t dato1 = cmdMS | 0x0C;
-	uint8_t dato2 = cmdMS | 0x08;
+	uint8_t dato1 = cmdMS | 0x0C; //rs =0 rw=1 en=1
+	uint8_t dato2 = cmdMS | 0x08; //rs =0 rw=1 en=0
 	uint8_t dato3 = cmdLS | 0x0C;
 	uint8_t dato4 = cmdLS | 0x08;
 
@@ -366,13 +364,13 @@ void writeCmd(uint8_t cmd){
 	lcd_writeSingleRegister(&handlerLCD, dato3);
 	lcd_writeSingleRegister(&handlerLCD, dato4);
 }
-
+//Funcion para andar datos a la pantalla en 4 bit (rs=1)
 void writeData(uint8_t cmd){
 	uint8_t cmdMS = cmd & 0xf0;
 	uint8_t cmdLS = (cmd<<4) & 0xf0;
 
-	uint8_t dato1 = cmdMS | 0x0D; //
-	uint8_t dato2 = cmdMS | 0x09;
+	uint8_t dato1 = cmdMS | 0x0D; //rs =1 rw=1 en=1
+	uint8_t dato2 = cmdMS | 0x09; //rs =1 rw=1 en=0
 	uint8_t dato3 = cmdLS | 0x0D;
 	uint8_t dato4 = cmdLS | 0x09;
 
@@ -382,6 +380,7 @@ void writeData(uint8_t cmd){
 	lcd_writeSingleRegister(&handlerLCD, dato4);
 }
 
+//Secuencia de inicializacion
 void InitLCD(){
 	delay(64);
 	writeCmd(0x30);
@@ -393,9 +392,9 @@ void InitLCD(){
 	writeCmd(0x0C);
 	writeCmd(0x01);
 	writeCmd(0x06);
-
 }
 
+//Para mandar una cadena de ascii
 void writeString(char *array){
 	uint8_t i = 0;
 	while (!(array[i] == '\0')) {
@@ -404,6 +403,7 @@ void writeString(char *array){
 	}
 }
 
+//Seleccionamos la posicion para mandar los datos
 void selectPos(uint8_t col, uint8_t row){
 	uint8_t i = 0;
 
@@ -439,6 +439,8 @@ void selectPos(uint8_t col, uint8_t row){
 	}
 }
 
+//Conversor de HSV a RGB, utilizando el angulo que me dan las 2 componentes
+//del acelerometro
 uint8_t HsvToRgb(int16_t x, int16_t y){
 	float thetha = 0;
 
@@ -493,17 +495,19 @@ uint8_t HsvToRgb(int16_t x, int16_t y){
 	 B = z+m;
 	}
 
-
+//Me entrega los valores de RGB
 	return R;
 	return G;
 	return B;
 
 }
 
+//obtenemos la aceleracion de los registros del acelerometro
 int16_t getAccel(void){
 	Z1 = i2c_readSingleRegister(&handlerAccelerometer, ACCEL_Z1);
 	Z0 = i2c_readSingleRegister(&handlerAccelerometer, ACCEL_Z0);
 	AccelZ = Z0 <<8 | Z1;
+	//Le definimos un limite pata que no tome los valores criticos
 	if(AccelZ > -6400){
 		Y1 = i2c_readSingleRegister(&handlerAccelerometer, ACCEL_Y1);
 		Y0 = i2c_readSingleRegister(&handlerAccelerometer, ACCEL_Y0);
@@ -517,12 +521,14 @@ int16_t getAccel(void){
 	}
 	delay(16);
 
+	//Devolvemos los valores de X,Y y Z
 	return AccelX;
 	return AccelY;
 	return AccelZ;
 
 }
 
+//Funcion para utilizar los comandos
 void parseCommands(char *ptrBufferReception) {
 
 
@@ -547,19 +553,21 @@ void parseCommands(char *ptrBufferReception) {
 	else if (strcmp(cmd, "dummy") == 0) {
 		writeMsg(&handlerCommTerminal, "CMD: dummy \n");
 	}
+	//0. Gets acceleratopm and Displays in LCD
 	else if (strcmp(cmd, "getaccel") == 0) {
 		if(initdisplay){
+		//1. obtenemos la aceleracion y le sacamos el porcentaje
 		getAccel();
 		PX = AccelX*100/32768;
 		PY = AccelY*100/32768;
 		PZ = AccelZ*100/32768;
-
 
 		writeMsg(&handlerCommTerminal, "CMD: get Acceleration \n");
 		writeCmd(0x01);
 		delay(16);
 		selectPos(1, 5);
 
+		//desplegamos en el LCD cada caso
 		if (strcmp(userMsg, "x") == 0){
 			sprintf(bufferData, "AccelX= %d", PX);
 			writeString(bufferData);
@@ -593,19 +601,23 @@ void parseCommands(char *ptrBufferReception) {
 		writeMsg(&handlerCommTerminal, userMsg);
 		writeMsg(&handlerCommTerminal, "\n");
 	}
+	//2. Inicializamos el display
 	else if(strcmp(cmd, "initdisplay") == 0){
 		writeMsg(&handlerCommTerminal, "CMD: init display \n");
 		InitLCD();  //Inicio el LCD
 
 		initdisplay = 1;
 	}
+	//3. Contamos el tiempo
 	else if(strcmp(cmd, "counttime") == 0){
 		writeMsg(&handlerCommTerminal, "CMD: start RTC timer \n");
 		writeCmd(0x01);
 		delay(16);
+		//Setiamos el display en ceros
 		rtc_Config();
 		rtc_SetTime(0, 0, 0);
 		delay(16);
+		//hasta que no hunda "p" mandamos al Coolterm la hora
 		while (!(rxData == 'p')) {
 			datosTiempo = rtc_GetData(); //obtenemos los datos de tiempo
 			SU  = datosTiempo[0];
@@ -619,24 +631,25 @@ void parseCommands(char *ptrBufferReception) {
 			delay(64);
 
 		}
-
-			lapse = 60*(10*MNT+MNU)+(10*ST+SU);
+		//cuando salga del while calculamos el tiempo transcurrido y lo desplegamos en pantalla
+		lapse = 60*(10*MNT+MNU)+(10*ST+SU);
 
 		sprintf(bufferData, "seconds = %d", (int) lapse);
 		writeString(bufferData);
 
 
 	}
-
+	//4. desplegamos el timepo en pantalla
 	else if(strcmp(cmd, "settime") == 0){
 		if(initdisplay){
 		writeMsg(&handlerCommTerminal, "CMD: set RTC timer \n");
 		writeMsg(&handlerCommTerminal, "press p to pause  \n");
 
+		//Configuramos el tiempo
 		rtc_Config();
 		rtc_SetTime(firstParameter, secondParameter, 0);
 
-
+		//hasta que no se hunda "p" mandamos al LCD los datos de la hora
 		while (!(rxData == 'p')) {
 			datosTiempo = rtc_GetData(); //obtenemos los datos de tiempo
 				uint8_t SU  = datosTiempo[0] + 48;
@@ -664,6 +677,7 @@ void parseCommands(char *ptrBufferReception) {
 		}
 
 	}
+	//5. definimos el periodo del LED
 	else if(strcmp(cmd, "setperiod") == 0){
 		writeMsg(&handlerCommTerminal, "CMD: set period to the LED  \n");
 
@@ -671,10 +685,10 @@ void parseCommands(char *ptrBufferReception) {
 		BasicTimer_Config(&handlerTim4);
 
 	}
-
+	//6. Empezamos el HSV
 	else if(strcmp(cmd, "starthsv") == 0){
 		writeMsg(&handlerCommTerminal, "CMD: start HSV  \n");
-
+		// Obtenemos continuamente los valoes de RGB y actualizamos los PWM
 		while (!(rxData == 'p')) {
 			getAccel();
 			HsvToRgb(AccelX,AccelY);
@@ -687,6 +701,7 @@ void parseCommands(char *ptrBufferReception) {
 		writeMsg(&handlerCommTerminal, "stop \n");
 
 	}
+	//7. Escribimos varios ascii
 	else if(strcmp(cmd, "writestring") == 0){
 		if(initdisplay){
 
@@ -698,12 +713,13 @@ void parseCommands(char *ptrBufferReception) {
 			writeMsg(&handlerCommTerminal, "init display please \n");
 	}
 	}
-
+	//8. Desplegamos 2 animaciones
 	else if(strcmp(cmd, "animation") == 0){
 		writeMsg(&handlerCommTerminal, "CMD: Animation  \n");
 		position = 131;
-//		writeCmd(0x01);
-
+		writeCmd(0x01);
+		delay(16);
+		//Caso 1: Vamos cambindo la posiicion del UserMSg, verticalmente
 		switch (firstParameter) {
 		case 1: {
 			while(!(rxData=='p')){
@@ -746,6 +762,8 @@ void parseCommands(char *ptrBufferReception) {
 			rxData = 0;
 			break;
 			}
+		//Caso 2: Vamos cambindo la posiicion del UserMSg, verticalmente
+
 		case 2:{
 			uint8_t i = 0;
 			for(i=0; i<40; i++){
@@ -758,18 +776,24 @@ void parseCommands(char *ptrBufferReception) {
 			}
 			break;
 		}
+		default:{
+			break;
+
 		}
 		}
+		}
 
 
-
+	//9. Select a position in LCD
 	else if(strcmp(cmd, "selectpos") == 0){
 		writeMsg(&handlerCommTerminal, "CMD: Select Position  \n");
+		//selects position
 		selectPos(firstParameter, secondParameter);
+		//writes an X
 		writeData('x');
 
 	}
-
+	//10. Clears Display
 	else if(strcmp(cmd, "cleardisplay") == 0){
 		writeMsg(&handlerCommTerminal, "CMD: Clear Display  \n");
 		writeCmd(0x01);
@@ -778,4 +802,7 @@ void parseCommands(char *ptrBufferReception) {
 
 
 	}
+
+
+
 

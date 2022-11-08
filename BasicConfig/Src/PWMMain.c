@@ -12,6 +12,73 @@
 #include "BasicTimer.h"
 #include "PWMDriver.h"
 
+//Defino variables
+GPIO_Handler_t handlerLedOK = { 0 };
+GPIO_Handler_t handlerPinTx = { 0 };
+GPIO_Handler_t handlerPinRx = { 0 };
+GPIO_Handler_t handlerI2cSDA = { 0 };
+GPIO_Handler_t handlerI2cSCL = { 0 };
+GPIO_Handler_t LCDI2cSDA = { 0 };
+GPIO_Handler_t LCDI2cSCL = { 0 };
+GPIO_Handler_t handlerRgbGround = { 0 };
+GPIO_Handler_t       handlerAF1 = {0};
+GPIO_Handler_t       handlerAF2 = {0};
+GPIO_Handler_t       handlerAF3 = {0};
+
+BasicTimer_Handler_t handlerStateLed = { 0 };
+BasicTimer_Handler_t handlerTim4 = {0};
+int delayFlag = 0;
+uint8_t tim4Flag = 0;
+
+USART_Handler_t handlerCommTerminal = { 0 };
+uint8_t rxData = 0;
+char greetingMsg[] = "Taller V Rocks!\n";
+char bufferData[64] = "esto es una prueba";
+char bufferReception[64] = {0};
+
+
+uint8_t counterReception = 0;
+bool stringComplete = false;
+unsigned int firstParameter;
+unsigned int secondParameter;
+char cmd[64] = {0};
+char userMsg[64] = {0};
+uint8_t initdisplay = 0;
+int hsvPeriod = 250;
+
+I2C_Handler_t handlerAccelerometer = { 0 };
+I2C_Handler_t handlerLCD = { 0 };
+
+PWM_Handler_t 		handlerPWM1 = {0};
+PWM_Handler_t 		handlerPWM2 = {0};
+PWM_Handler_t 		handlerPWM3 = {0};
+
+
+
+#define PI 3.141592654
+#define ACCEL_ADDRESS 0b01010011;
+#define ACCEL_PWR 45
+#define ACCEL_X0 50
+#define ACCEL_X1 51
+#define ACCEL_Y0 52
+#define ACCEL_Y1 53
+#define ACCEL_Z0 54
+#define ACCEL_Z1 55
+#define LCD_ADDRESS 0x27;
+uint8_t R;
+uint8_t G;
+uint8_t B;
+uint8_t X1;
+uint8_t X0;
+uint8_t Y1;
+uint8_t Y0;
+uint8_t Z0;
+uint8_t Z1;
+int16_t AccelX;
+int16_t AccelY;
+int16_t AccelZ;
+uint8_t position = 0;
+
 PWM_Handler_t 		handlerPWM1 = {0};
 PWM_Handler_t 		handlerPWM2 = {0};
 PWM_Handler_t 		handlerPWM3 = {0};
@@ -45,7 +112,6 @@ int main(void){
 			}
 
 			else if (rxData == 'x') {
-				sprintf(bufferData, "dataX = %d %d %d %d\n", X1, X0, X2, X3);
 				writeMsg(&handlerCommTerminal, bufferData);
 				rxData = '\0';
 			}

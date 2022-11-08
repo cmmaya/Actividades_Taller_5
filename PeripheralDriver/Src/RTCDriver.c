@@ -54,6 +54,7 @@ void rtc_NotInitialize(void){
 }
 
 void	rtc_SetTime(uint8_t hours,uint8_t minutes, uint8_t seconds){
+	rtc_Config();
 	rtc_Initialize();
 	uint8_t horadec = hours / 10;
 	uint8_t horaunid = hours % 10;

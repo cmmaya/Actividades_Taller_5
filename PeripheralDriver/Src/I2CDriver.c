@@ -121,7 +121,7 @@ void i2c_sendAck(I2C_Handler_t *ptrHandlerI2C){
 
 void i2c_sendSlaveAddressRW(I2C_Handler_t *ptrHandlerI2C, uint8_t slaveAddress, uint8_t readOrWrite){
 	// 0. Definimos una variable auxiliar
-	uint8_t auxByte = 0;
+ 	uint8_t auxByte = 0;
 	(void) auxByte;
 
 	//3. Enviamos la direccion del Slave y del Bit que indica que deseamos escribir (0)
