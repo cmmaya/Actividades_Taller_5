@@ -11,7 +11,7 @@
 #include "USARTxDriver.h"
 #include "I2CDriver.h"
 #include "RTCDriver.h"
-#include "PWMDriver.h"
+#include "PwmDriver.h"
 
 //RTC
 char *datosTiempo;
@@ -804,5 +804,15 @@ void parseCommands(char *ptrBufferReception) {
 	}
 
 
-
+//Revisión Examen.
+//- El equipo no funcionó inicialmente...
+//- Los datos del acelerometro no funcionan correctamente (ejeY y ejeZ)
+//- La lista de comando tiene problemas...
+//- El Led RGB funciona con ciertos problemas con respecto al angulo del Accel.
+//- Agregar las referencias de donde se sacó el código.
+//- Hace falta poner mas comentarios en el código
+//
+//(15+25+12+3+10+20)*5/100
+//
+//Calificación = 4.25
 
