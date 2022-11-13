@@ -119,30 +119,34 @@ void USART_Config(USART_Handler_t *ptrUsartHandler){
 
 	// 2.5 Configuracion del Baudrate (SFR USART_BRR)
 	// Ver tabla de valores (Tabla 73), Frec = 16MHz, overr = 0;
-	if(ptrUsartHandler->USART_Config.USART_baudrate == USART_BAUDRATE_9600){
-		// El valor a cargar es 104.1875 -> Mantiza = 104,fraction = 0.1875
-		// Mantiza = 104 = 0x68, fraction = 16 * 0.1875 = 3
-		// Valor a cargar 0x0683
-		// Configurando el Baudrate generator para una velocidad de 9600bps
-		ptrUsartHandler->ptrUSARTx->BRR = 0x0683;
-	}
+		if(ptrUsartHandler->USART_Config.USART_baudrate == USART_BAUDRATE_9600){
+			// El valor a cargar es 104.1875 -> Mantiza = 104,fraction = 0.1875
+			// Mantiza = 104 = 0x68, fraction = 16 * 0.1875 = 3
+			// Valor a cargar 0x0683
+			// Configurando el Baudrate generator para una velocidad de 9600bps
+	//		ptrUsartHandler->ptrUSARTx->BRR = 0x0683; // para 16Mhz
+			ptrUsartHandler->ptrUSARTx->BRR = 0xa2c;  // para 100Mhz
 
-	else if (ptrUsartHandler->USART_Config.USART_baudrate == USART_BAUDRATE_19200) {
-		// El valor a cargar es 52.0625 -> Mantiza = 52,fraction = 0.0625
-		// Mantiza = 52 = 0x34, fraction = 16 * 0.1875 = 1
-		// Escriba acá su código y los comentarios que faltan
-		ptrUsartHandler->ptrUSARTx->BRR = 0x0341;
-	}
+		}
 
-	else if(ptrUsartHandler->USART_Config.USART_baudrate == USART_BAUDRATE_115200){
-		// Escriba acá su código y los comentarios que faltan
-		ptrUsartHandler->ptrUSARTx->BRR = 0x008b;
-	}
+		else if (ptrUsartHandler->USART_Config.USART_baudrate == USART_BAUDRATE_19200) {
+			// El valor a cargar es 52.0625 -> Mantiza = 52,fraction = 0.0625
+			// Mantiza = 52 = 0x34, fraction = 16 * 0.1875 = 1
+			// Escriba acá su código y los comentarios que faltan
+			ptrUsartHandler->ptrUSARTx->BRR = 0x0341;
+		}
 
-	else if(ptrUsartHandler->USART_Config.USART_baudrate == USART_BAUDRATE_57600){
-		// Escriba acá su código y los comentarios que faltan
-		ptrUsartHandler->ptrUSARTx->BRR = 0x116;
-	}
+		else if(ptrUsartHandler->USART_Config.USART_baudrate == USART_BAUDRATE_115200){
+			// Escriba acá su código y los comentarios que faltan
+			ptrUsartHandler->ptrUSARTx->BRR = 0x008b;
+		}
+
+		else if(ptrUsartHandler->USART_Config.USART_baudrate == USART_BAUDRATE_57600){
+			// Escriba acá su código y los comentarios que faltan
+			ptrUsartHandler->ptrUSARTx->BRR = 0x116;
+		}
+
+
 	// 2.6 Configuramos el modo: TX only, RX only, RXTX, disable
 
 	//limpiamos el registro

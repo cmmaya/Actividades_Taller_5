@@ -30,6 +30,7 @@
 #define USART_STOPBIT_2		2
 #define USART_STOPBIT_1_5	3
 
+#define MHZ_100	100
 
 #define USART_RX_INTERRUPT_ENABLE  1
 
