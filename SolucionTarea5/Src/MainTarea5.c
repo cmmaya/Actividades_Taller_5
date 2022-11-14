@@ -59,7 +59,6 @@ void initSystem(void){
 	handlerPinTx.GPIO_PinConfig.GPIO_PinAltFunMode  = AF7;
 	GPIO_Config(&handlerPinTx);
 
-
 	handlerPinRx.pGPIOx 							= GPIOA;
 	handlerPinRx.GPIO_PinConfig.GPIO_PinNumber  	= PIN_3;
 	handlerPinRx.GPIO_PinConfig.GPIO_PinMode    	= GPIO_MODE_ALTFN;
@@ -68,6 +67,15 @@ void initSystem(void){
 	handlerPinRx.GPIO_PinConfig.GPIO_PinSpeed   	= GPIO_OSPEED_FAST;
 	handlerPinRx.GPIO_PinConfig.GPIO_PinAltFunMode  = AF7;
 	GPIO_Config(&handlerPinRx);
+
+	handlerCommTerminal.ptrUSARTx = USART2;
+	handlerCommTerminal.USART_Config.USART_baudrate 	= USART_BAUDRATE_115200; //La nueva mantiza se calculo en el driver.
+	handlerCommTerminal.USART_Config.USART_datasize		= USART_DATASIZE_8BIT;
+	handlerCommTerminal.USART_Config.USART_parity 		= USART_PARITY_NONE;
+	handlerCommTerminal.USART_Config.USART_stopbits 	= USART_STOPBIT_1;
+	handlerCommTerminal.USART_Config.USART_mode			= USART_MODE_RXTX;
+	handlerCommTerminal.USART_Config.USART_enableIntRX	= USART_RX_INTERRUPT_ENABLE;
+	USART_Config(&handlerCommTerminal);
 
     handlerBlinky.pGPIOx                                = GPIOA;
 	handlerBlinky.GPIO_PinConfig.GPIO_PinNumber         = PIN_5;
@@ -88,20 +96,13 @@ void initSystem(void){
 
 	handlerStateLed.ptrTIMx 						= TIM2;
 	handlerStateLed.TIMx_Config.TIMx_mode 			= BTIMER_MODE_UP;
-	handlerStateLed.TIMx_Config.TIMx_speed 			= BTIMER_SPEED100MHz_1ms;
+	handlerStateLed.TIMx_Config.TIMx_speed 			= BTIMER_SPEED100MHz_1ms; //Usamos un nuevo macro que coicida con 25Mhz
 	handlerStateLed.TIMx_Config.TIMx_period 		= 250;	//periodod de 250 ms
 	handlerStateLed.TIMx_Config.TIMx_interruptEnable = BTIMER_INTERRUPT_ENABLE;
 	BasicTimer_Config(&handlerStateLed);
 	startTimer(&handlerStateLed);
 
-	handlerCommTerminal.ptrUSARTx = USART2;
-	handlerCommTerminal.USART_Config.USART_baudrate 	= USART_BAUDRATE_9600;
-	handlerCommTerminal.USART_Config.USART_datasize		= USART_DATASIZE_8BIT;
-	handlerCommTerminal.USART_Config.USART_parity 		= USART_PARITY_NONE;
-	handlerCommTerminal.USART_Config.USART_stopbits 	= USART_STOPBIT_1;
-	handlerCommTerminal.USART_Config.USART_mode			= USART_MODE_RXTX;
-	handlerCommTerminal.USART_Config.USART_enableIntRX	= USART_RX_INTERRUPT_ENABLE;
-	USART_Config(&handlerCommTerminal);
+
 }
 
 

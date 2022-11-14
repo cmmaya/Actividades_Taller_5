@@ -138,7 +138,9 @@ void USART_Config(USART_Handler_t *ptrUsartHandler){
 
 		else if(ptrUsartHandler->USART_Config.USART_baudrate == USART_BAUDRATE_115200){
 			// Escriba acá su código y los comentarios que faltan
-			ptrUsartHandler->ptrUSARTx->BRR = 0x008b;
+//			ptrUsartHandler->ptrUSARTx->BRR = 0x008b; //Para 16Mhz
+			ptrUsartHandler->ptrUSARTx->BRR = 0xD9; //Para 16Mhz
+
 		}
 
 		else if(ptrUsartHandler->USART_Config.USART_baudrate == USART_BAUDRATE_57600){
