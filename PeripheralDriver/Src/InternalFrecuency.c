@@ -1,7 +1,7 @@
 /*
  * InternalFrecuency.c
  */
-#include "internalFrecuency.h"
+#include "InternalFrecuency.h"
 
 void internalFrecuency_config(void){
 //	RCC->CR |= RCC_CR_HSEON;  //Activamos el HSE para que el reloh no funcione en el HSI y poder configurar el PLL
