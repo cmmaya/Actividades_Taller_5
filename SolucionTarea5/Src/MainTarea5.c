@@ -9,7 +9,6 @@
 #include "GPIOxDriver.h"
 #include "BasicTimer.h"
 #include "InternalFrecuency.h"
-
 #include "USARTxDriver.h"
 
 GPIO_Handler_t handlerBlinky = { 0 };
@@ -29,7 +28,8 @@ void initSystem(void);
 
 int main(void){
 	initSystem();
-	internalFrecuency_config();
+//	setFrecuency_Mhz(100,&handlerCommTerminal);
+	internalFrecuency_config(100);
 
 
 	while(1){
@@ -95,9 +95,9 @@ void initSystem(void){
     GPIO_Config(&handlerMCO1);
 
 	handlerStateLed.ptrTIMx 						= TIM2;
-	handlerStateLed.TIMx_Config.TIMx_mode 			= BTIMER_MODE_UP;
-	handlerStateLed.TIMx_Config.TIMx_speed 			= BTIMER_SPEED100MHz_1ms; //Usamos un nuevo macro que coicida con 25Mhz
-	handlerStateLed.TIMx_Config.TIMx_period 		= 250;	//periodod de 250 ms
+	handlerStateLed.TIMx_Config.TIMx_mode 			 = BTIMER_MODE_UP;
+	handlerStateLed.TIMx_Config.TIMx_speed 			 = 10000; //Usamos un nuevo macro que coicida con 25Mhz
+	handlerStateLed.TIMx_Config.TIMx_period 		 = 2500;	//periodod de 250 ms
 	handlerStateLed.TIMx_Config.TIMx_interruptEnable = BTIMER_INTERRUPT_ENABLE;
 	BasicTimer_Config(&handlerStateLed);
 	startTimer(&handlerStateLed);

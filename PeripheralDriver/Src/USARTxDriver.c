@@ -138,8 +138,9 @@ void USART_Config(USART_Handler_t *ptrUsartHandler){
 
 		else if(ptrUsartHandler->USART_Config.USART_baudrate == USART_BAUDRATE_115200){
 			// Escriba acá su código y los comentarios que faltan
+			// El valor a cargar es 54.2535 -> Mantiza = 54,fraction = 0.2535*16 = 4
 //			ptrUsartHandler->ptrUSARTx->BRR = 0x008b; //Para 16Mhz
-			ptrUsartHandler->ptrUSARTx->BRR = 0xD9; //Para 16Mhz
+			ptrUsartHandler->ptrUSARTx->BRR = 0x01B2; //Para 100Mhz
 
 		}
 

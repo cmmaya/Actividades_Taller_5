@@ -13,6 +13,6 @@
 
 
 
-void internalFrecuency_config(void);
-void setFrecuency_Mhz(uint8_t frecuency);
+void internalFrecuency_config(uint8_t frecuency);
+//void setFrecuency_Mhz(uint8_t frecuency, USART_Handler_t *ptrUsartHandler);
 #endif /* INTERNALFRECUENCY_H_ */
