@@ -6,6 +6,7 @@
 #define INC_BASICTIMER_H_
 
 #include "stm32f4xx.h"
+#include "CaptureFrecDriver.h"
 
 #define BTIMER_MODE_UP		0
 #define BTIMER_MODE_DOWN	1
@@ -45,6 +46,7 @@ void BasicTimer3_Callback(void);
 void BasicTimer4_Callback(void);
 void BasicTimer5_Callback(void);
 
+uint32_t getData(void);
 void startTimer(BasicTimer_Handler_t *ptrTimerConfig);
 void stopTimer(BasicTimer_Handler_t *ptrTimerConfig);
 #endif /* INC_BASICTIMER_H_ */

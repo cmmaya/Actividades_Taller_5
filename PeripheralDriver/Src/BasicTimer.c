@@ -5,6 +5,8 @@
 #include "BasicTimer.h"
 
 
+
+uint32_t auxTimeStamp = 0;
 /* Función en la que cargamos la configuración del Timer
  * Recordar que siempre se debe comenzar con activar la señal de reloj
  * del periférico que se está utilizando.
@@ -146,11 +148,16 @@ __attribute__((weak)) void BasicTimer5_Callback(void){
  * Al hacerlo correctamente, el sistema apunta a esta función y cuando la interrupción se lanza
  * el sistema inmediatamente salta a este lugar en la memoria*/
 void TIM2_IRQHandler(void){
-	/* Limpiamos la bandera que indica que la interrupción se ha generado */
-	TIM2->SR &= ~TIM_SR_UIF;
-
-	/* LLamamos a la función que se debe encargar de hacer algo con esta interrupción*/
-	BasicTimer2_Callback();
+	if (TIM2->SR & TIM_SR_UIF) {
+		/* Limpiamos la bandera que indica que la interrupción se ha generado */
+		TIM2->SR &= ~TIM_SR_UIF;
+		/* LLamamos a la función que se debe encargar de hacer algo con esta interrupción*/
+		BasicTimer2_Callback();
+	}
+	else if(TIM2->SR & TIM_SR_CC2IF){
+		TimerCapture2_Callback();
+		auxTimeStamp = TIM2->CCR2;
+	}
 
 }
 void TIM3_IRQHandler(void){
@@ -162,11 +169,32 @@ void TIM3_IRQHandler(void){
 
 }
 void TIM4_IRQHandler(void){
+	if (TIM4->SR & TIM_SR_UIF) {
 	/* Limpiamos la bandera que indica que la interrupción se ha generado */
 	TIM4->SR &= ~TIM_SR_UIF;
 
 	/* LLamamos a la función que se debe encargar de hacer algo con esta interrupción*/
 	BasicTimer4_Callback();
+	}
+	else if(TIM4->SR & TIM_SR_CC4IF){
+		if((TIM4->CCER & TIM_CCER_CC1E)){
+			auxTimeStamp = TIM4->CCR1;
+		}
+		else if((TIM4->CCER & TIM_CCER_CC2E)){
+			auxTimeStamp = TIM4->CCR2;
+		}
+		else if((TIM4->CCER & TIM_CCER_CC3E)){
+			auxTimeStamp = TIM4->CCR3;
+		}
+		else if((TIM4->CCER & TIM_CCER_CC4E)){
+			auxTimeStamp = TIM4->CCR4;
+		}
+		else{
+			__NOP();
+		}
+//		auxTimeStamp = TIM4->CCR3;
+		TimerCapture4_Callback();
+	}
 
 }
 void TIM5_IRQHandler(void){
@@ -188,3 +216,8 @@ void stopTimer(BasicTimer_Handler_t *ptrTimerConfig){
 }
 
 
+
+
+uint32_t getData(void){
+	return auxTimeStamp;
+}

@@ -5,44 +5,17 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../Src/AdcDriver.c \
-../Src/BasicTimer.c \
-../Src/CaptureFrecDriver.c \
-../Src/ExtiDriver.c \
-../Src/GPIOxDriver.c \
-../Src/I2CDriver.c \
-../Src/InternalFrecuency.c \
-../Src/PwmDriver.c \
-../Src/RTCDriver.c \
-../Src/USARTxDriver.c \
+../Src/CapturaFrecMain.c \
 ../Src/syscalls.c \
 ../Src/sysmem.c 
 
 OBJS += \
-./Src/AdcDriver.o \
-./Src/BasicTimer.o \
-./Src/CaptureFrecDriver.o \
-./Src/ExtiDriver.o \
-./Src/GPIOxDriver.o \
-./Src/I2CDriver.o \
-./Src/InternalFrecuency.o \
-./Src/PwmDriver.o \
-./Src/RTCDriver.o \
-./Src/USARTxDriver.o \
+./Src/CapturaFrecMain.o \
 ./Src/syscalls.o \
 ./Src/sysmem.o 
 
 C_DEPS += \
-./Src/AdcDriver.d \
-./Src/BasicTimer.d \
-./Src/CaptureFrecDriver.d \
-./Src/ExtiDriver.d \
-./Src/GPIOxDriver.d \
-./Src/I2CDriver.d \
-./Src/InternalFrecuency.d \
-./Src/PwmDriver.d \
-./Src/RTCDriver.d \
-./Src/USARTxDriver.d \
+./Src/CapturaFrecMain.d \
 ./Src/syscalls.d \
 ./Src/sysmem.d 
 
