@@ -80,6 +80,7 @@ int main(void){
 				rxData = '\0';
 			}
 
+
 			rxData = '\0';
 		}
 	}
@@ -176,7 +177,7 @@ void initSystem(void){
 	handlerSignalPWM.config.channel 	= PWM_CHANNEL_2;
 	handlerSignalPWM.config.duttyCicle 	= duttyValue;
 	handlerSignalPWM.config.prescaler 	= CAPTURE_TIMER_SPEED_1ms; //se hace un conteo cada 16000 ciclos (1ms)
-	handlerSignalPWM.config.periodo 	= 150;  //el periodo es de 20ms
+	handlerSignalPWM.config.periodo 	= 155;  //el periodo es de 20ms
 	handlerSignalPWM.ptrTIMx			= TIM3;
 
 	pwm_Config(&handlerSignalPWM);

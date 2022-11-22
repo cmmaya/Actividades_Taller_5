@@ -231,6 +231,7 @@ void capture_Config(Capture_Handler_t *ptrCaptureHandler){
 
 
 
+/*Funcion para inicializar el conteo y la captura*/
 void startCapture(Capture_Handler_t *ptrCaptureHandler){
 
 
@@ -314,28 +315,9 @@ void startCapture(Capture_Handler_t *ptrCaptureHandler){
 
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+//////////////////////////////////////
+//ESTA ES LA FUNCION VIEJA
+/////////////////////////////////////
 
 
 /*Esta funcion se encarga de lanzar la captura de la frecuencia... en este caso funciona
@@ -483,28 +465,40 @@ uint32_t getPeriodFrec(Capture_Handler_t *ptrCaptureHandler){
 	}
 	return deltaTimestamp;
 }
+/////////////////////////////////////////////////////////////////////
 
 
 void stopCapture(Capture_Handler_t *ptrCaptureHandler){
+	ptrCaptureHandler->ptrTIMx->CNT = 0;
 	switch (ptrCaptureHandler->config.channel) {
 		case CAPTURE_CHANNEL_1:{
+			//apagamos la captura y luego el timer
 			ptrCaptureHandler->ptrTIMx->CCER &= ~TIM_CCER_CC1E;
 			ptrCaptureHandler->ptrTIMx->CR1 &= ~TIM_CR1_CEN;
+			//Bajamos la bandera que indica que existe un evento de captura
+			ptrCaptureHandler->ptrTIMx->SR &= ~TIM_SR_CC1IF;
 			break;
 		}
 		case CAPTURE_CHANNEL_2:{
 			ptrCaptureHandler->ptrTIMx->CCER &= ~TIM_CCER_CC2E;
 			ptrCaptureHandler->ptrTIMx->CR1 &= ~TIM_CR1_CEN;
+			//Bajamos la bandera que indica que existe un evento de captura
+			ptrCaptureHandler->ptrTIMx->SR &= ~TIM_SR_CC2IF;
+
 			break;
 		}
 		case CAPTURE_CHANNEL_3:{
 			ptrCaptureHandler->ptrTIMx->CCER &= ~TIM_CCER_CC3E;
 			ptrCaptureHandler->ptrTIMx->CR1 &= ~TIM_CR1_CEN;
+			//Bajamos la bandera que indica que existe un evento de captura
+			ptrCaptureHandler->ptrTIMx->SR &= ~TIM_SR_CC3IF;
 			break;
 		}
 		case CAPTURE_CHANNEL_4:{
 			ptrCaptureHandler->ptrTIMx->CCER &= ~TIM_CCER_CC4E;
 			ptrCaptureHandler->ptrTIMx->CR1 &= ~TIM_CR1_CEN;
+			//Bajamos la bandera que indica que existe un evento de captura
+			ptrCaptureHandler->ptrTIMx->SR &= ~TIM_SR_CC4IF;
 			break;
 		}
 		default:{
