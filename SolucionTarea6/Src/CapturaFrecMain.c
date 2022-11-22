@@ -38,8 +38,7 @@ char bufferData[64] = "esto es una pequena prueba";
 Capture_Handler_t handlerCapturaFrec = {0};
 char flagCapture = 0;
 char flagStart = 1;
-uint16_t duttyValue = 5000;
-
+uint8_t duttyValue = 5;
 /* definicion de las funciones prototipo */
 void initSystem(void);
 
@@ -49,30 +48,38 @@ void initSystem(void);
 int main(void){
 	// Llamamos a la funcion que nos inicializa el hardware del sistema
 	initSystem();
+	writeMsg(&handlerCommTerminal, "Bienvenido, porfavor inicializar: 's' \n -para adquirir el dato presionar 't' \n");
 
 	/* Main loop */
 	while(1){
-		//Hacemos un eco con el valor que nos llega por el serial
+		/*Hacemos un eco con el valor que nos llega por el serial*/
 		if(rxData != '\0'){
 
+			/*inicializamos el capturador de frecuencia*/
 			if(rxData == 's'){
+				//Le decimos que ejecute el start solo 1 vez por sesion
 				if(flagStart){
+				//llamamos la funcion start
 				startCapture(&handlerCapturaFrec);
+				//escribimos start el el USART 2
 				writeMsg(&handlerCommTerminal, "start \n");
 				}
 				flagStart = 0;
 				rxData = '\0';
 			}
+			/*leemos el valor del rawperiod*/
 			else if(rxData == 't'){
-
+				//escribimos el valor del periodo en el USART 2
 				sprintf(bufferData, "rawPeriod = %u \n", (unsigned int) rawPeriod);
 				writeMsg(&handlerCommTerminal, bufferData);
 				rxData = '\0';
 			}
+			/*para probar la comunicacion serial*/
 			else if(rxData == 'm'){
 				writeMsg(&handlerCommTerminal, "TallerVRocks! \n");
 				rxData = '\0';
 			}
+
 			rxData = '\0';
 		}
 	}
@@ -129,7 +136,7 @@ void initSystem(void){
 
 	// Configuramos la comunicacion serial
 	handlerCommTerminal.ptrUSARTx = USART2;
-	handlerCommTerminal.USART_Config.USART_baudrate 	= USART_BAUDRATE_9600;
+	handlerCommTerminal.USART_Config.USART_baudrate 	= USART_BAUDRATE_115200;
 	handlerCommTerminal.USART_Config.USART_datasize		= USART_DATASIZE_8BIT;
 	handlerCommTerminal.USART_Config.USART_parity 		= USART_PARITY_NONE;
 	handlerCommTerminal.USART_Config.USART_stopbits 	= USART_STOPBIT_1;
@@ -163,13 +170,13 @@ void initSystem(void){
 	handlerPinPwmChannel.GPIO_PinConfig.GPIO_PinOPType		= GPIO_OTYPE_PUSHPULL;
 	handlerPinPwmChannel.GPIO_PinConfig.GPIO_PinPuPdControl	= GPIO_PUPDR_NOTHING;
 	handlerPinPwmChannel.GPIO_PinConfig.GPIO_PinSpeed		= GPIO_OSPEED_FAST;
-
+	//cargamos la config del pin del PWM como ALTFN 2, correspondiente al canal 2 del tim 3
 	GPIO_Config(&handlerPinPwmChannel);
 
 	handlerSignalPWM.config.channel 	= PWM_CHANNEL_2;
 	handlerSignalPWM.config.duttyCicle 	= duttyValue;
-	handlerSignalPWM.config.periodo 	= 15000;
-	handlerSignalPWM.config.prescaler 	= 16;
+	handlerSignalPWM.config.prescaler 	= CAPTURE_TIMER_SPEED_1ms; //se hace un conteo cada 16000 ciclos (1ms)
+	handlerSignalPWM.config.periodo 	= 150;  //el periodo es de 20ms
 	handlerSignalPWM.ptrTIMx			= TIM3;
 
 	pwm_Config(&handlerSignalPWM);
@@ -187,16 +194,17 @@ void initSystem(void){
 	handlerPinCaptureFrec.GPIO_PinConfig.GPIO_PinOPType			= GPIO_OTYPE_PUSHPULL;
 	handlerPinCaptureFrec.GPIO_PinConfig.GPIO_PinPuPdControl	= GPIO_PUPDR_NOTHING;
 	handlerPinCaptureFrec.GPIO_PinConfig.GPIO_PinSpeed			= GPIO_OSPEED_FAST;
-
+	//cargamos la config con ALFN 2 correspondiente al canal  del TIM4
 	GPIO_Config(&handlerPinCaptureFrec);
 
-	//
+	//configuramos el capturador de frecuencia
 	handlerCapturaFrec.ptrTIMx					= TIM4;
 	handlerCapturaFrec.config.channel			= CAPTURE_CHANNEL_3;
-	handlerCapturaFrec.config.edgeSignal   		= CAPTURE_FALLING_EDGE;
+	handlerCapturaFrec.config.edgeSignal   		= CAPTURE_FALLING_EDGE; /*se hace la captura en flanco de bajada*/
 	handlerCapturaFrec.config.prescalerCapture	= CAPTURE_PREESCALER_1_1;
-	handlerCapturaFrec.config.timerSpeed		= CAPTURE_TIMER_SPEED_100us;
-	handlerCapturaFrec.config.enableInt			= INTERRUPT_ENABLE;
+	handlerCapturaFrec.config.timerSpeed		= CAPTURE_TIMER_SPEED_1ms;
+	handlerCapturaFrec.config.enableInt			= INTERRUPT_ENABLE;     /*Activamos las interrupciones*/
+	//cargamos la configuracion
 	capture_Config(&handlerCapturaFrec);
 }
 
@@ -216,13 +224,23 @@ void BasicTimer2_Callback(void){
 	GPIOxTooglePin(&handlerLedOk);
 }
 
+/*Callback de la captura del Timer 4, canal 3*/
 void TimerCapture4_Callback(void){
+	/*vamos a hacer 2 capturas:
+	 *la primera es cuando la bandera está en 0. En ese caso tomamos el valor del counter desde que empezó en un
+	  momento indeterminado
+	 *La segunda es cuando la bandera está en 1. Aqui tomamos el dato de nuevo y los restamos con el anterior
+	  para obtener el periodo entre las 2 interrupciones
+	 */
 	if(flagCapture){
+		//obtenemos el dato la segunda vez y restamos los 2 datos
 		rawPeriod = getData()- rawPeriod;
+		//Detenemos la captura y timer para que no se sigan dando interrupciones
 		stopCapture(&handlerCapturaFrec);
 	}
 
 	else{
+		//obtenemos el dato la primera vez y subimos la bandera
 		rawPeriod = getData() ;
 		flagCapture = 1;
 

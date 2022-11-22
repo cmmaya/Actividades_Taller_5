@@ -167,24 +167,32 @@ void capture_Config(Capture_Handler_t *ptrCaptureHandler){
 
 	}//fin del switch case
 
-	//Configuraamos las interupciones
+	//Configuramos el prescaler
 	ptrCaptureHandler->ptrTIMx->PSC =ptrCaptureHandler->config.timerSpeed;
 
+
+	/*Configuramos las interupciones: le decimos que se levante la bandera de que la interrupcion se dio segun el canal
+	Que elegimos, Dicha interrupcion esta matriculada en el DIER de cada timer. Por tanto la interrupcion va a ser
+	atendida en el IRQ del timer en cuestion*/
 	if(ptrCaptureHandler->config.enableInt == INTERRUPT_ENABLE){
 		switch(ptrCaptureHandler->config.channel){
 		case CAPTURE_CHANNEL_1:{
+			//Matriculammos la interrupcion del canal 1
 			ptrCaptureHandler->ptrTIMx->DIER |= TIM_DIER_CC1IE;
 			break;
 		}
 		case CAPTURE_CHANNEL_2:{
+			//Matriculammos la interrupcion del canal 2
 			ptrCaptureHandler->ptrTIMx->DIER |= TIM_DIER_CC2IE;
 			break;
 		}
 		case CAPTURE_CHANNEL_3:{
+			//Matriculammos la interrupcion del canal 3
 			ptrCaptureHandler->ptrTIMx->DIER |= TIM_DIER_CC3IE;
 			break;
 		}
 		case CAPTURE_CHANNEL_4:{
+			//Matriculammos la interrupcion del canal 4
 			ptrCaptureHandler->ptrTIMx->DIER |= TIM_DIER_CC4IE;
 			break;
 		}
@@ -217,6 +225,7 @@ void capture_Config(Capture_Handler_t *ptrCaptureHandler){
 	else{
 		__NOP();
 	}
+	//activamos las interrupciones
 	__enable_irq();
 }
 
@@ -233,13 +242,13 @@ void startCapture(Capture_Handler_t *ptrCaptureHandler){
 		//Borramos el valor inicial que indica un evento e captura
 		ptrCaptureHandler->ptrTIMx->CCR1 = 0;
 
-		//Bajamos la bandera que indica que existe un evento de captura
+		//Bajamos la bandera que indica que existe un evento de captura, y el overrun por si acaso
 		ptrCaptureHandler->ptrTIMx->SR &= ~TIM_SR_CC1IF;
-		ptrCaptureHandler->ptrTIMx->SR &= ~TIM_SR_CC1OF; // necesario?
+		ptrCaptureHandler->ptrTIMx->SR &= ~TIM_SR_CC1OF;
 
+		//INICIAMOS EL CONTEO
 		// Encendemos el timer para que comience a contar
 		ptrCaptureHandler->ptrTIMx->CR1 |= TIM_CR1_CEN;
-
 		//Activamos el modulo de captura
 		ptrCaptureHandler->ptrTIMx->CCER |= TIM_CCER_CC1E;
 
@@ -506,13 +515,7 @@ void stopCapture(Capture_Handler_t *ptrCaptureHandler){
 }
 
 
-__attribute__((weak)) void TimerCapture2_Callback(void){
-	  /* NOTE : This function should not be modified, when the callback is needed,
-	            the BasicTimerX_Callback could be implemented in the main file
-	   */
-	__NOP();
-}
-
+//Creamos el Callback de la captura del TIMER 4: Aqui viene a ser atendida la interrupcion una vez efectuada.
 __attribute__((weak)) void TimerCapture4_Callback(void){
 __NOP();
 
