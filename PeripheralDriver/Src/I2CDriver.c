@@ -268,3 +268,78 @@ uint8_t lcd_readSingleRegister(I2C_Handler_t *ptrHandlerI2C){
 	return auxRead;
 
 }
+
+
+//Drivers para el LCD
+void writeCmd(I2C_Handler_t *handlerLCD, uint8_t cmd){
+	uint8_t cmdMS = cmd & 0xf0;
+	uint8_t cmdLS = (cmd<<4) & 0xf0;
+
+	uint8_t dato1 = cmdMS | 0x0C; //rs =0 rw=1 en=1
+	uint8_t dato2 = cmdMS | 0x08; //rs =0 rw=1 en=0
+	uint8_t dato3 = cmdLS | 0x0C;
+	uint8_t dato4 = cmdLS | 0x08;
+
+	lcd_writeSingleRegister(handlerLCD, dato1);
+	lcd_writeSingleRegister(handlerLCD, dato2);
+	lcd_writeSingleRegister(handlerLCD, dato3);
+	lcd_writeSingleRegister(handlerLCD, dato4);
+}
+//Funcion para andar datos a la pantalla en 4 bit (rs=1)
+void writeData(I2C_Handler_t *handlerLCD,uint8_t cmd){
+	uint8_t cmdMS = cmd & 0xf0;
+	uint8_t cmdLS = (cmd<<4) & 0xf0;
+
+	uint8_t dato1 = cmdMS | 0x0D; //rs =1 rw=1 en=1
+	uint8_t dato2 = cmdMS | 0x09; //rs =1 rw=1 en=0
+	uint8_t dato3 = cmdLS | 0x0D;
+	uint8_t dato4 = cmdLS | 0x09;
+
+	lcd_writeSingleRegister(handlerLCD, dato1);
+	lcd_writeSingleRegister(handlerLCD, dato2);
+	lcd_writeSingleRegister(handlerLCD, dato3);
+	lcd_writeSingleRegister(handlerLCD, dato4);
+}
+
+void writeString(I2C_Handler_t *handlerLCD,char *array){
+	uint8_t i = 0;
+	while (!(array[i] == '\0')) {
+		writeData(handlerLCD, array[i]);
+		i++;
+	}
+}
+
+void selectPos(I2C_Handler_t *handlerLCD, uint8_t col, uint8_t row){
+	uint8_t i = 0;
+
+	switch(row){
+	case 0:{
+		writeCmd(handlerLCD,0x80 + col);
+		break;
+	}
+	case 1:{
+		writeCmd(handlerLCD,0xC0 + col);
+		break;
+	}
+	case 2:{
+		writeCmd(handlerLCD,0x80 + col);
+		while(i<20){
+			writeData(handlerLCD,' ');
+			i++;
+		}
+		break;
+	}
+	case 3:{
+		writeCmd(handlerLCD,0xC0 + col);
+		while(i<20){
+			writeData(handlerLCD,' ');
+			i++;
+		}
+		break;
+	}
+
+	default:{
+		writeCmd(handlerLCD,0x80 + col);
+	}
+	}
+}

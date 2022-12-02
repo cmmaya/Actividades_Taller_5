@@ -5,17 +5,20 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../Src/CapturaFrecMain.c \
+../Src/LCDConfig.c \
+../Src/ProyectoMain.c \
 ../Src/syscalls.c \
 ../Src/sysmem.c 
 
 OBJS += \
-./Src/CapturaFrecMain.o \
+./Src/LCDConfig.o \
+./Src/ProyectoMain.o \
 ./Src/syscalls.o \
 ./Src/sysmem.o 
 
 C_DEPS += \
-./Src/CapturaFrecMain.d \
+./Src/LCDConfig.d \
+./Src/ProyectoMain.d \
 ./Src/syscalls.d \
 ./Src/sysmem.d 
 

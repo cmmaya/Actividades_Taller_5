@@ -48,4 +48,10 @@ void i2c_writeSingleRegister(I2C_Handler_t *ptrHandlerI2C, uint8_t regToRead, ui
 uint8_t lcd_readSingleRegister(I2C_Handler_t *ptrHandlerI2C);
 void lcd_writeSingleRegister(I2C_Handler_t *ptrHandlerI2C, uint8_t newValue);
 
+//LCD Drivers
+void writeCmd(I2C_Handler_t *handlerLCD, uint8_t cmd);
+void writeData(I2C_Handler_t *handlerLCD, uint8_t cmd);
+void writeString(I2C_Handler_t *handlerLCD,char *array);
+void selectPos(I2C_Handler_t *handlerLCD, uint8_t col, uint8_t row);
+
 #endif /* I2CDRIVER_H_ */
