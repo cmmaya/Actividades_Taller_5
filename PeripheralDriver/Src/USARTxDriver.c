@@ -300,7 +300,18 @@ void USART6_IRQHandler(void){
 	}
 }
 
-
+/*
+ * Camilo,
+ * Lo primero es volver a ahcerte la observacion sobre poner comentarios en el código, vos no lo haces o solo
+ * pones alguna palabra simple... creeme que uno pone comentarios para el futuro.
+ * Con respecto a la configuración, hay varios problemas:
+ * - Los valores para el trabajo con el PLL estaán comentados. Reralmente deberias tener una forma de seleccionar los
+ *   valores con respecto a la velocidad que se tiene seleccionada.
+ * - Hay una mezcla confusa entre valores para 16MHz y 100MHz.
+ * - No tienes en cuenta que el bus APB1 (USART1 y USART6) corre mas rapido que el APB2 (USART2), por lo cual toda tu
+ *   configuracion queda solo sirviendo para el USART2, los otros dos dejan de funcionar.
+ * Calificación = 3.1
+ * */
 
 
 
