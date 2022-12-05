@@ -35,6 +35,7 @@ GPIO_Handler_t handlerDCDetector 	= {0};
 GPIO_Handler_t LCDI2cSDA = { 0 };
 GPIO_Handler_t LCDI2cSCL = { 0 };
 GPIO_Handler_t handlerPinPwmChannel		= {0};
+GPIO_Handler_t handlerPwmDC		= {0};
 GPIO_Handler_t handlerBoton		= {0};
 
 EXTI_Config_t handlerExtiR= { 0 };
@@ -51,9 +52,10 @@ uint8_t banderAdc=1;
 GPIO_Handler_t handlerLedOk				  = {0};
 BasicTimer_Handler_t handlerStaterOKTimer = {0};
 BasicTimer_Handler_t handlerAdcTimer = {0};
-uint16_t delayFlag = 0;
+uint32_t delayFlag = 0;
 
 PWM_Handler_t handlerSignalPWM			= {0};
+PWM_Handler_t handlerPWMDC				= {0};
 uint16_t duttyValue = 200;
 
 I2C_Handler_t handlerLCD = { 0 };
@@ -77,12 +79,13 @@ int	 numeroVueltasServo = 1;
 int numeroVueltasAdcServo =0;
 uint8_t rawData = 0;
 uint8_t banderaStart=0;
+uint8_t botonEstado = 0;
 /* definicion de las funciones prototipo */
 void initSystem(void);
 void girarServo(uint8_t dir);
 void girarDC(uint8_t dir);
 void detectorRL(void);
-void delay(uint8_t H);
+void delay(uint32_t H);
 void detectorUD(void);
 void USARTCommands(void);
 void InitLCD();
@@ -94,33 +97,52 @@ int main(void){
 	// Llamamos a la funcion que nos inicializa el hardware del sistema
 	initSystem();
 	InitLCD();
-	delay(1);
+	delay(5);
 	MultichannelADC(1);
 
+	writeCmd(&handlerLCD, 0x01);
+	delay(5);
+	writeString(&handlerLCD, "status: joystick");
 	/* Main loop */
 	while(1){
 		//Esperamos a que se pulse el boton para setiar el sistema en altura 0 y activar los detectores
 		while(banderaStart==0){
+			botonEstado = GPIO_ReadPin(&handlerBoton);
 			USARTCommands();
 		joystickControl();
 		//Aqui se lee si el boton esta pulsado (0 es pulsado)
-			if (GPIO_ReadPin(&handlerBoton) == 0) {
+			if (botonEstado == 0) {
 				banderaStart = 1;
+				writeCmd(&handlerLCD, 0x01);
+				delay(5);
+				writeString(&handlerLCD, "status: waiting...");
 			}
 		}
 		USARTCommands();
 		//Activamos los sensores del mov circular y tomamos una medida
-//		GPIO_WritePin(&handlerDCDetector, SET);
-//		detectorRL(); //Aqui se ejecuta la instruccion
-		delay(50);
+		GPIO_WritePin(&handlerDCDetector, SET);
+		delay(250);
+		detectorRL(); //Aqui se ejecuta la instruccion
 		//Apagamos los sensores circulares y encendemos los verticales
-//		GPIO_WritePin(&handlerDCDetector, RESET);
-		GPIO_WritePin(&handlerServoDetector, SET);
-
-		detectorUD();//Aqui se ejecuta la instruccion
+		GPIO_WritePin(&handlerDCDetector, RESET);
 		delay(50);
-//		GPIO_WritePin(&handlerServoDetector, RESET);//Apagamos los sensores verticales
+		GPIO_WritePin(&handlerServoDetector, SET);
+		delay(250);
+		detectorUD();//Aqui se ejecuta la instruccion
+		GPIO_WritePin(&handlerServoDetector, RESET);//Apagamos los sensores verticales
+		delay(50);
+		botonEstado = GPIO_ReadPin(&handlerBoton);
 
+		if (botonEstado == 0 ) {
+			banderaStart = 0;
+			writeCmd(&handlerLCD, 0x01);
+			delay(5);
+			writeString(&handlerLCD, "status:  joystick");
+			while(botonEstado ==0){
+				botonEstado = GPIO_ReadPin(&handlerBoton);
+				__NOP();
+			}
+		}
 
 	}
 }
@@ -174,6 +196,7 @@ void initSystem(void){
 	handlerA1.GPIO_PinConfig.GPIO_PinSpeed			= GPIO_OSPEED_FAST;
 	GPIO_Config(&handlerA1);
 
+
 	handlerA2.pGPIOx								= GPIOC;
 	handlerA2.GPIO_PinConfig.GPIO_PinAltFunMode 	= AF0;
 	handlerA2.GPIO_PinConfig.GPIO_PinMode			= GPIO_MODE_OUT;
@@ -197,7 +220,7 @@ void initSystem(void){
 	handlerDCDetector.pGPIOx								= GPIOC;
 	handlerDCDetector.GPIO_PinConfig.GPIO_PinAltFunMode	 	= AF0;
 	handlerDCDetector.GPIO_PinConfig.GPIO_PinMode			= GPIO_MODE_OUT;
-	handlerDCDetector.GPIO_PinConfig.GPIO_PinNumber			= PIN_12;
+	handlerDCDetector.GPIO_PinConfig.GPIO_PinNumber			= PIN_2;
 	handlerDCDetector.GPIO_PinConfig.GPIO_PinOPType			= GPIO_OTYPE_PUSHPULL;
 	handlerDCDetector.GPIO_PinConfig.GPIO_PinPuPdControl	= GPIO_PUPDR_NOTHING;
 	handlerDCDetector.GPIO_PinConfig.GPIO_PinSpeed			= GPIO_OSPEED_FAST;
@@ -301,15 +324,36 @@ void initSystem(void){
 	//cargamos la config del pin del PWM como ALTFN 2, correspondiente al canal 2 del tim 3
 	GPIO_Config(&handlerPinPwmChannel);
 
+	//configuramos El pwm que regula la salida del motor DC
+	handlerPwmDC.pGPIOx								= GPIOC;
+	handlerPwmDC.GPIO_PinConfig.GPIO_PinAltFunMode 	= AF2;
+	handlerPwmDC.GPIO_PinConfig.GPIO_PinMode		= GPIO_MODE_ALTFN;
+	handlerPwmDC.GPIO_PinConfig.GPIO_PinNumber		= PIN_8;
+	handlerPwmDC.GPIO_PinConfig.GPIO_PinOPType		= GPIO_OTYPE_PUSHPULL;
+	handlerPwmDC.GPIO_PinConfig.GPIO_PinPuPdControl	= GPIO_PUPDR_NOTHING;
+	handlerPwmDC.GPIO_PinConfig.GPIO_PinSpeed		= GPIO_OSPEED_FAST;
+	//cargamos la config del pin del PWM como ALTFN 2, correspondiente al canal 2 del tim 3
+	GPIO_Config(&handlerPwmDC);
+
 	handlerSignalPWM.config.channel 	= PWM_CHANNEL_2;
 	handlerSignalPWM.config.duttyCicle 	= duttyValue;
 	handlerSignalPWM.config.periodo 	= 200;
 	handlerSignalPWM.config.prescaler 	= 1600;
 	handlerSignalPWM.ptrTIMx			= TIM3;
 
+	handlerPWMDC.config.channel 	= PWM_CHANNEL_3;
+	handlerPWMDC.config.duttyCicle 	= 200;
+	handlerPWMDC.config.periodo 	= 200;
+	handlerPWMDC.config.prescaler 	= 1600;
+	handlerPWMDC.ptrTIMx			= TIM3;
+
 	pwm_Config(&handlerSignalPWM);
 	enableOutput(&handlerSignalPWM);
 	startPwmSignal(&handlerSignalPWM);
+
+	pwm_Config(&handlerPWMDC);
+	enableOutput(&handlerPWMDC);
+	startPwmSignal(&handlerPWMDC);
 
 	///ADC/////////////////////////////////////////////////////////////
 	//Se establecen las configuraciones del ADC
@@ -410,34 +454,35 @@ void girarServo(uint8_t dir){
 
 void girarDC(uint8_t dir){
 	if(dir == izquierda){
-		GPIO_WritePin(&handlerA1, SET);
-		GPIO_WritePin(&handlerA2, RESET);
+		updateDuttyCycle(&handlerPWMDC, 50);
+		GPIO_WritePin(&handlerA1, RESET);
 	}
 	else if(dir == derecha){
-		GPIO_WritePin(&handlerA1, RESET);
-		GPIO_WritePin(&handlerA2, SET);
+		updateDuttyCycle(&handlerPWMDC, 150);
+		GPIO_WritePin(&handlerA1, SET);
 		}
 	else if(dir == stop){
+		updateDuttyCycle(&handlerPWMDC, 200);
 		GPIO_WritePin(&handlerA1, RESET);
-		GPIO_WritePin(&handlerA2, RESET);
 	}
 }
 
 void detectorRL(void){
+
 	//Leemos los detectores
 	DetectorR = GPIO_ReadPin(&handlerDetectorR);
 	DetectorL = GPIO_ReadPin(&handlerDetectorL);
 	//En el caso de detectar el lado derecho, girar hacia el lado derecho, hasta que se toque el detector Izuiqeda
-	if(numeroVueltasDC <28){
+	if(numeroVueltasDC <4 && numeroVueltasDC >-4) {
 		if (DetectorR == 0 && DetectorL == 1) {
-			girarDC(derecha);
 			writeCmd(&handlerLCD, 0x01);
-			delay(1);
-			writeString(&handlerLCD, "status: Up");
-			while (DetectorL == 1 && numeroVueltasDC < 22) {
+			delay(5);
+			writeString(&handlerLCD, "status: Left");
+			girarDC(derecha);//movi esto
+			while (DetectorL == 1 && numeroVueltasDC < 3) {
 				numeroVueltasDC += 1;
 				DetectorL = GPIO_ReadPin(&handlerDetectorL);
-				delay(1);
+				delay(30);
 			}
 			//Luego detenemos giro hasta que quitemos la mano del detector izquierdo
 			girarDC(stop);
@@ -445,32 +490,37 @@ void detectorRL(void){
 				DetectorL = GPIO_ReadPin(&handlerDetectorL);
 			}
 			writeCmd(&handlerLCD, 0x01);
-			delay(1);
+			delay(5);
 			writeString(&handlerLCD, "status: Stop");
-			delay(1);
+			delay(50);
 		}
-	}
-	if(numeroVueltasDC > 5){
-	if(DetectorR == 1 && DetectorL == 0){
-		girarDC(izquierda);
+
+
+	else if(DetectorR == 1 && DetectorL == 0){
 		writeCmd(&handlerLCD, 0x01);
-		delay(1);
-		writeString(&handlerLCD, "status: Down");
-		while(DetectorR ==1 && numeroVueltasDC >5){
+		delay(5);
+		writeString(&handlerLCD, "status: Right");
+		girarDC(izquierda);
+		while(DetectorR ==1 && numeroVueltasDC >-3){
 			numeroVueltasDC-=1;
 			DetectorR = GPIO_ReadPin(&handlerDetectorR);
-			delay(1);
+			delay(30);
 		}
 		girarDC(stop);
 		while(!DetectorR){
 			DetectorR = GPIO_ReadPin(&handlerDetectorR);
 		}
 		writeCmd(&handlerLCD, 0x01);
-		delay(1);
+		delay(5);
 		writeString(&handlerLCD, "status: Stop");
-		delay(1);
+		delay(50);
+
 	}
 	}
+	else{
+		__NOP();
+	}
+
 }
 
 void detectorUD(void){
@@ -481,7 +531,7 @@ void detectorUD(void){
 	if(numeroVueltasServo <28 && numeroVueltasServo >0) {
 		if (DetectorU == 0 && DetectorD == 1) {
 			writeCmd(&handlerLCD, 0x01);
-			delay(1);
+			delay(5);
 			writeString(&handlerLCD, "status: Up");
 			girarServo(derecha);//movi esto
 			while (DetectorD == 1 && numeroVueltasServo < 22) {
@@ -495,15 +545,15 @@ void detectorUD(void){
 				DetectorD = GPIO_ReadPin(&handlerDetectorD);
 			}
 			writeCmd(&handlerLCD, 0x01);
-			delay(1);
+			delay(5);
 			writeString(&handlerLCD, "status: Stop");
 			delay(50);
 		}
 
 
-	if(DetectorU == 1 && DetectorD == 0){
+	else if(DetectorU == 1 && DetectorD == 0){
 		writeCmd(&handlerLCD, 0x01);
-		delay(1);
+		delay(5);
 		writeString(&handlerLCD, "status: Down");
 		girarServo(izquierda);
 		while(DetectorU ==1 && numeroVueltasServo >1){
@@ -516,7 +566,7 @@ void detectorUD(void){
 			DetectorU = GPIO_ReadPin(&handlerDetectorU);
 		}
 		writeCmd(&handlerLCD, 0x01);
-		delay(1);
+		delay(5);
 		writeString(&handlerLCD, "status: Stop");
 		delay(50);
 
@@ -562,11 +612,11 @@ void joystickControl(void){
 }
 //Secuencia de inicializacion
 void InitLCD(){
-	delay(1);
+	delay(5);
 	writeCmd(&handlerLCD, 0x30);
-	delay(1);
+	delay(5);
 	writeCmd(&handlerLCD, 0x30);
-	delay(1);
+	delay(5);
 	writeCmd(&handlerLCD, 0x32);
 	writeCmd(&handlerLCD, 0x28);
 	writeCmd(&handlerLCD, 0x0C);
@@ -575,7 +625,7 @@ void InitLCD(){
 }
 
 //Usando el Timer 2, creamos un delay. 1 ciclo es 1/64 segundo
-void delay(uint8_t H){
+void delay(uint32_t H){
 	delayFlag = 0;
 	while(delayFlag<H){
 		__NOP();
@@ -624,7 +674,7 @@ void USARTCommands(void){
 			rxData = '\0';
 		}
 		else if(rxData == 'o'){
-			sprintf(bufferData, "vueltas = %d \n", (int) numeroVueltasServo);
+			sprintf(bufferData, "vueltas = %d \n", (int) numeroVueltasDC);
 			writeMsg(&handlerCommTerminal, bufferData);
 			rxData = '\0';
 

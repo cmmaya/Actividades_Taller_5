@@ -80,7 +80,6 @@ int main(void){
 				rxData = '\0';
 			}
 
-
 			rxData = '\0';
 		}
 	}
