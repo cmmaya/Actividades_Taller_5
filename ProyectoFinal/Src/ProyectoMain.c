@@ -79,7 +79,7 @@ uint8_t DetectorL;
 uint8_t DetectorU;
 uint8_t DetectorD;
 int	 numeroVueltasDC = 0;
-int	 numeroVueltasServo = 1;
+int	 numeroVueltasServo = 0;
 int numeroVueltasAdcServo =0;
 uint8_t rawData = 0;
 uint8_t banderaStart=0;
@@ -124,6 +124,9 @@ int main(void){
 				banderaStart = 1;
 				writeCmd(&handlerLCD, 0x01); 						//Limpiamos la pantalla
 				delay(5);
+				numeroVueltasServo =0;
+				numeroVueltasDC =0;
+
 				writeString(&handlerLCD, "status: waiting..."); 	//Escribimos
 			}
 		}
@@ -503,7 +506,7 @@ void detectorRL(void){
 			delay(5);
 			writeString(&handlerLCD, "status: Left");	//escribimos hacia el lado que giro
 			girarDC(derecha);//movi esto
-			while (DetectorL == 1 && numeroVueltasDC < 7) {
+			while (DetectorL == 1 && numeroVueltasDC < 6) {
 				numeroVueltasDC += 1;					//aumentamos el contador de cueltas
 				DetectorL = GPIO_ReadPin(&handlerDetectorL);	//leemmos el detector contrario, hasta que sea obstruido
 				delay(30);
@@ -525,7 +528,7 @@ void detectorRL(void){
 		delay(5);
 		writeString(&handlerLCD, "status: Right");
 		girarDC(izquierda);
-		while(DetectorR ==1 && numeroVueltasDC >-7){
+		while(DetectorR ==1 && numeroVueltasDC >-6){
 			numeroVueltasDC-=1;
 			DetectorR = GPIO_ReadPin(&handlerDetectorR);
 			delay(30);
@@ -559,7 +562,7 @@ void detectorUD(void){
 	DetectorU = GPIO_ReadPin(&handlerDetectorU);
 	DetectorD = GPIO_ReadPin(&handlerDetectorD);
 	//En el caso de detectar el lado derecho, girar hacia el lado derecho, hasta que se toque el detector Izuiqeda
-	if(numeroVueltasServo <28 && numeroVueltasServo >0) {
+	if(numeroVueltasServo <28 && numeroVueltasServo >-1) {
 		if (DetectorU == 0 && DetectorD == 1) {
 			writeCmd(&handlerLCD, 0x01);
 			delay(5);
