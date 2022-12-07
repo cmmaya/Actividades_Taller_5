@@ -246,3 +246,18 @@ void TimerCapture4_Callback(void){
 
 	}
 }
+
+
+/*
+ * Camilo!!! Pusiste comentarios!!! Estoy atonito, casi de no creer!! =)
+ * Aunque aun se extraña que no le pongas tu nombre al código....
+ *
+ * Eres de los pocos que plantean una solución en la que puedes controlar la captura (activarla), lo cual es lo mas
+ * deseable.
+ *
+ * Con respecto a la funcion getdata(), ese nombre es muy generico y puede ser de muchas cosas, un mejor nombre podria ser
+ * getCaptureData() o algo similar, que te indique de que periferico específico es.
+ *
+ * Calificación = 4.8 (por seguir negandote a no firmar tu código)
+ *
+ * */
